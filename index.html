@@ -1666,21 +1666,6 @@
 
   const getStatutColor = (s) => statutColors[s] || '#6b7280';
   const getStatutLabel = (s) => statutLabels[s] || s;
-
-  // ============================================
-  // TOAST NOTIFICATION
-  // ============================================
-  const showToast = (msg, type = 'success') => {
-    const colors = { success:'#10b981', error:'#ef4444', warning:'#f59e0b', info:'#3b82f6' };
-    const icons = { success:'✅', error:'❌', warning:'⚠️', info:'ℹ️' };
-    const el = document.createElement('div');
-    el.className = 'toast-item';
-    el.style.background = colors[type];
-    el.innerHTML = '<span>' + icons[type] + '</span><span>' + msg + '</span>';
-    document.getElementById('toast-container').appendChild(el);
-    setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 4000);
-  };
-
   // ============================================
   // THEME SOMBRE / CLAIR
   // ============================================
