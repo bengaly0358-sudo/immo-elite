@@ -368,14 +368,23 @@
           <div class="form-row"><div class="form-group"><label class="form-label">Garage</label><select id="ab-garage" class="form-select"><option value="non">Non</option><option value="oui">Oui</option></select></div><div class="form-group"><label class="form-label">Meublé</label><select id="ab-meuble" class="form-select"><option value="non">Non</option><option value="oui">Oui</option></select></div></div>
           <div class="form-group"><label class="form-label">Description <span class="required">*</span></label><textarea id="ab-description" class="form-textarea" required placeholder="Description..."></textarea></div>
           <div class="section-sub-title">📄 Contrat (PDF)</div>
-          <div class="form-group"><label class="form-label">URL du contrat PDF</label><input type="url" id="ab-contrat" class="form-input" placeholder="https://..."/></div>
-          <div class="section-sub-title">📸 Photos</div>
-          <div class="form-group"><div class="upload-zone" id="zone-ab-photos"><div style="font-size:28px;margin-bottom:6px;">📷</div><div><strong>Cliquez pour ajouter des photos</strong></div><p>JPG, PNG — Max 5 Mo</p><input type="file" id="ab-photos" accept="image/*" multiple onchange="previewAbPhotos(this)"/></div><div class="photos-preview" id="ab-photos-preview"></div><div class="progress-wrap" id="ab-photos-progress"><div class="progress-bar"><div class="progress-fill" id="ab-photos-fill"></div></div><div class="progress-text" id="ab-photos-text">0%</div></div></div>
-          <div class="section-sub-title">🎬 Vidéo</div>
-          <div class="form-group"><div class="upload-zone" id="zone-ab-video"><div style="font-size:28px;margin-bottom:6px;">🎬</div><div><strong>Cliquez pour ajouter une vidéo</strong></div><p>MP4, MOV — Max 100 Mo</p><div id="ab-video-name" style="font-size:12px;color:var(--success);margin-top:4px;"></div><input type="file" id="ab-video" accept="video/*" onchange="previewAbVideo(this)"/></div><div class="progress-wrap" id="ab-video-progress"><div class="progress-bar"><div class="progress-fill" id="ab-video-fill"></div></div><div class="progress-text" id="ab-video-text">0%</div></div></div>
-          <button type="submit" class="btn btn-primary" id="btn-ajouter-bien" style="width:100%;padding:14px;font-size:15px;margin-top:8px;">✅ Publier ce bien</button>
-        </form>
-      </div></div>
+          <div class="form-group">
+            <div class="upload-zone" id="zone-ab-contrat">
+              <div style="font-size:28px;margin-bottom:6px;">📄</div>
+              <div><strong>Cliquez pour importer le contrat PDF</strong></div>
+              <p>Format PDF — Max 10 Mo</p>
+              <div id="ab-contrat-name" style="font-size:13px;color:var(--success);font-weight:600;margin-top:8px;"></div>
+              <input type="file" id="ab-contrat-file" accept=".pdf,application/pdf" onchange="previewBienContrat(this)"/>
+            </div>
+            <div class="progress-wrap" id="ab-contrat-progress">
+              <div class="progress-bar"><div class="progress-fill" id="ab-contrat-fill"></div></div>
+              <div class="progress-text" id="ab-contrat-text">0%</div>
+            </div>
+            <div style="margin-top:10px;">
+              <label class="form-label">OU coller un lien PDF</label>
+              <input type="url" id="ab-contrat" class="form-input" placeholder="https://... lien direct vers le PDF"/>
+            </div>
+          </div>          
     </section>
 
     <!-- RESERVATIONS -->
@@ -819,7 +828,24 @@
   // AJOUTER BIEN AGENCE
   let abPhotosURLs = []; let abVideoURL = '';
   window.previewAbPhotos = (input) => { const files = Array.from(input.files); const preview = document.getElementById('ab-photos-preview'); preview.innerHTML = ''; files.forEach(file => { const reader = new FileReader(); reader.onload = (e) => { const img = document.createElement('img'); img.src = e.target.result; preview.appendChild(img); }; reader.readAsDataURL(file); }); document.getElementById('zone-ab-photos').classList.add('has-file'); };
-  window.previewAbVideo = (input) => { const file = input.files[0]; if (!file) return; if (file.size > 100*1024*1024) { showToast('Vidéo trop lourde', 'error'); input.value = ''; return; } document.getElementById('ab-video-name').textContent = '✅ ' + file.name; document.getElementById('zone-ab-video').classList.add('has-file'); };
+  window.previewBienContrat = (input) => {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      showToast('Fichier trop lourd (max 10 Mo)', 'error');
+      input.value = '';
+      return;
+    }
+    if (!file.type.includes('pdf')) {
+      showToast('Format PDF uniquement', 'error');
+      input.value = '';
+      return;
+    }
+    document.getElementById('ab-contrat-name').textContent = '✅ ' + file.name;
+    document.getElementById('zone-ab-contrat').classList.add('has-file');
+    showToast('Contrat PDF sélectionné', 'info');
+  }; 
+ window.previewAbVideo = (input) => { const file = input.files[0]; if (!file) return; if (file.size > 100*1024*1024) { showToast('Vidéo trop lourde', 'error'); input.value = ''; return; } document.getElementById('ab-video-name').textContent = '✅ ' + file.name; document.getElementById('zone-ab-video').classList.add('has-file'); };
 
   const uploadImgBB = (file, fillEl, textEl, wrapEl) => new Promise((resolve, reject) => { const fd = new FormData(); fd.append('image', file); fd.append('key', IMGBB_KEY); wrapEl.classList.add('show'); const xhr = new XMLHttpRequest(); xhr.upload.addEventListener('progress', (e) => { if (e.lengthComputable) { const p = Math.round((e.loaded/e.total)*100); fillEl.style.width = p+'%'; textEl.textContent = p+'%'; } }); xhr.addEventListener('load', () => { if (xhr.status === 200) { const d = JSON.parse(xhr.responseText); if (d.success) resolve(d.data.url); else reject(new Error('ImgBB error')); } else reject(new Error('Upload failed')); }); xhr.addEventListener('error', () => reject(new Error('Network error'))); xhr.open('POST', 'https://api.imgbb.com/1/upload'); xhr.send(fd); });
   const uploadCloudinary = (file, fillEl, textEl, wrapEl) => new Promise((resolve, reject) => { const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', CLOUDINARY_PRESET); fd.append('folder', 'immo-elite/videos'); wrapEl.classList.add('show'); const xhr = new XMLHttpRequest(); xhr.upload.addEventListener('progress', (e) => { if (e.lengthComputable) { const p = Math.round((e.loaded/e.total)*100); fillEl.style.width = p+'%'; textEl.textContent = p+'%'; } }); xhr.addEventListener('load', () => { if (xhr.status === 200) { const d = JSON.parse(xhr.responseText); resolve(d.secure_url); } else reject(new Error('Cloudinary error')); }); xhr.addEventListener('error', () => reject(new Error('Network error'))); xhr.open('POST', 'https://api.cloudinary.com/v1_1/' + CLOUDINARY_NAME + '/video/upload'); xhr.send(fd); });
@@ -838,8 +864,21 @@
       abPhotosURLs = [];
       for (let i = 0; i < photosFiles.length; i++) { abPhotosURLs.push(await uploadImgBB(photosFiles[i], document.getElementById('ab-photos-fill'), document.getElementById('ab-photos-text'), document.getElementById('ab-photos-progress'))); }
       const videoFile = document.getElementById('ab-video').files[0];
-      if (videoFile) { abVideoURL = await uploadCloudinary(videoFile, document.getElementById('ab-video-fill'), document.getElementById('ab-video-text'), document.getElementById('ab-video-progress')); }
-      await addDoc(collection(db, 'biens'), { titre, type, categorie: cat, adresse: document.getElementById('ab-adresse').value.trim(), ville: document.getElementById('ab-ville').value.trim(), quartier: document.getElementById('ab-quartier').value.trim(), prix: parseFloat(prix) || 0, caution: parseFloat(document.getElementById('ab-caution').value) || 0, avance: parseInt(document.getElementById('ab-avance').value) || 0, dureeMinLocation: parseInt(document.getElementById('ab-duree-min').value) || 0, disponibilite: document.getElementById('ab-dispo').value || null, enVedette: document.getElementById('ab-vedette').value === 'oui', chambres: parseInt(document.getElementById('ab-chambres').value) || 0, douches: parseInt(document.getElementById('ab-douches').value) || 0, surface: parseFloat(document.getElementById('ab-surface').value) || 0, etage: document.getElementById('ab-etage').value.trim(), garage: document.getElementById('ab-garage').value === 'oui', meuble: document.getElementById('ab-meuble').value === 'oui', description: document.getElementById('ab-description').value.trim(), contratPdf: document.getElementById('ab-contrat').value.trim(), photos: abPhotosURLs, video: abVideoURL || '', sourceAjout: 'agence', proprietaireId: null, proprietaireNom: '', statut: 'publie', vues: 0, createdAt: serverTimestamp() });
+      // Upload contrat PDF si présent
+      let abContratURL = '';
+      const contratFile = document.getElementById('ab-contrat-file').files[0];
+      if (contratFile) {
+        btn.innerHTML = '<div class="spinner"></div> Upload contrat PDF...';
+        abContratURL = await uploadPdfCloudinary(
+          contratFile,
+          document.getElementById('ab-contrat-fill'),
+          document.getElementById('ab-contrat-text'),
+          document.getElementById('ab-contrat-progress')
+        );
+        showToast('Contrat PDF uploadé !', 'success');
+      }      
+if (videoFile) { abVideoURL = await uploadCloudinary(videoFile, document.getElementById('ab-video-fill'), document.getElementById('ab-video-text'), document.getElementById('ab-video-progress')); }
+      await addDoc(collection(db, 'biens'), { titre, type, categorie: cat, adresse: document.getElementById('ab-adresse').value.trim(), ville: document.getElementById('ab-ville').value.trim(), quartier: document.getElementById('ab-quartier').value.trim(), prix: parseFloat(prix) || 0, caution: parseFloat(document.getElementById('ab-caution').value) || 0, avance: parseInt(document.getElementById('ab-avance').value) || 0, dureeMinLocation: parseInt(document.getElementById('ab-duree-min').value) || 0, disponibilite: document.getElementById('ab-dispo').value || null, enVedette: document.getElementById('ab-vedette').value === 'oui', chambres: parseInt(document.getElementById('ab-chambres').value) || 0, douches: parseInt(document.getElementById('ab-douches').value) || 0, surface: parseFloat(document.getElementById('ab-surface').value) || 0, etage: document.getElementById('ab-etage').value.trim(), garage: document.getElementById('ab-garage').value === 'oui', meuble: document.getElementById('ab-meuble').value === 'oui', description: document.getElementById('ab-description').value.trim(), contratPdf: abContratURL || document.getElementById('ab-contrat').value.trim(), photos: abPhotosURLs, video: abVideoURL || '', sourceAjout: 'agence', proprietaireId: null, proprietaireNom: '', statut: 'publie', vues: 0, createdAt: serverTimestamp() });
       showToast('Bien publié !', 'success'); document.getElementById('form-bien').reset(); document.getElementById('ab-photos-preview').innerHTML = ''; abPhotosURLs = []; abVideoURL = '';
       setTimeout(() => showPage('biens'), 1500);
     } catch (err) { showToast('Erreur : ' + err.message, 'error'); } finally { btn.disabled = false; btn.innerHTML = '✅ Publier ce bien'; }
@@ -964,9 +1003,165 @@
 
   // CONTRATS
   const chargerContrats = async () => { try { const snap = await getDocs(collection(db, 'contrats')); tousContrats = snap.docs.map(d => ({ id: d.id, ...d.data() })); const tbody = document.getElementById('tbody-contrats'); if (tousContrats.length === 0) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-light);">Aucun contrat</td></tr>'; return; } tbody.innerHTML = tousContrats.map(c => '<tr><td><strong>' + (c.bienTitre || '—') + '</strong></td><td>' + (c.clientNom || '—') + '</td><td>' + (c.proprietaireNom || 'Agence') + '</td><td style="color:var(--primary);font-weight:700;">' + formatPrix(c.montantLoyer) + '</td><td>' + formatPrix(c.caution) + '</td><td>' + formatDate(c.dateDebut) + '</td><td>' + formatDate(c.dateFin) + '</td><td>' + (contratStatutBadge[c.statut] || c.statut) + '</td><td>' + (c.fichierUrl ? '<a href="' + c.fichierUrl + '" target="_blank" class="btn btn-outline btn-xs">📄</a>' : '—') + '</td></tr>').join(''); } catch (e) { document.getElementById('tbody-contrats').innerHTML = '<tr><td colspan="9" style="color:var(--danger);">Erreur</td></tr>'; } };
-  window.ouvrirAjouterContrat = () => { document.getElementById('modal-titre').textContent = '➕ Ajouter contrat'; document.getElementById('modal-overlay').style.display = 'flex'; document.getElementById('modal-body').innerHTML = '<div class="form-row"><div class="form-group"><label class="form-label">Bien</label><input type="text" id="ct-bien" class="form-input"/></div><div class="form-group"><label class="form-label">Client</label><input type="text" id="ct-client" class="form-input"/></div></div><div class="form-row"><div class="form-group"><label class="form-label">Loyer</label><input type="number" id="ct-loyer" class="form-input" min="0"/></div><div class="form-group"><label class="form-label">Caution</label><input type="number" id="ct-caution" class="form-input" min="0"/></div></div><div class="form-row"><div class="form-group"><label class="form-label">Début</label><input type="date" id="ct-debut" class="form-input"/></div><div class="form-group"><label class="form-label">Fin</label><input type="date" id="ct-fin" class="form-input"/></div></div><div class="form-group"><label class="form-label">URL contrat PDF</label><input type="url" id="ct-pdf" class="form-input"/></div><button class="btn btn-primary" style="width:100%;padding:13px;margin-top:8px;" onclick="sauvegarderContrat()">💾 Sauvegarder</button>'; };
-  window.sauvegarderContrat = async () => { try { await addDoc(collection(db, 'contrats'), { bienTitre: document.getElementById('ct-bien').value.trim(), clientNom: document.getElementById('ct-client').value.trim(), montantLoyer: parseFloat(document.getElementById('ct-loyer').value) || 0, caution: parseFloat(document.getElementById('ct-caution').value) || 0, dateDebut: document.getElementById('ct-debut').value, dateFin: document.getElementById('ct-fin').value, fichierUrl: document.getElementById('ct-pdf').value.trim(), statut: 'actif', createdAt: serverTimestamp() }); fermerModal(); showToast('Contrat sauvegardé !', 'success'); chargerContrats(); } catch (e) { showToast('Erreur', 'error'); } };
+  window.ouvrirAjouterContrat = () => {
+    document.getElementById('modal-titre').textContent = '➕ Ajouter un contrat';
+    document.getElementById('modal-overlay').style.display = 'flex';
+    document.getElementById('modal-body').innerHTML =
+      '<div class="form-row">' +
+        '<div class="form-group"><label class="form-label">Titre du bien <span class="required">*</span></label><input type="text" id="ct-bien" class="form-input" placeholder="Nom du bien"/></div>' +
+        '<div class="form-group"><label class="form-label">Nom du client <span class="required">*</span></label><input type="text" id="ct-client" class="form-input" placeholder="Nom du client"/></div>' +
+      '</div>' +
+      '<div class="form-row">' +
+        '<div class="form-group"><label class="form-label">Propriétaire</label><input type="text" id="ct-proprio" class="form-input" placeholder="Nom propriétaire ou Agence"/></div>' +
+        '<div class="form-group"><label class="form-label">Loyer mensuel</label><input type="number" id="ct-loyer" class="form-input" min="0"/></div>' +
+      '</div>' +
+      '<div class="form-row">' +
+        '<div class="form-group"><label class="form-label">Caution</label><input type="number" id="ct-caution" class="form-input" min="0"/></div>' +
+        '<div class="form-group"><label class="form-label">Avance</label><input type="number" id="ct-avance" class="form-input" min="0"/></div>' +
+      '</div>' +
+      '<div class="form-row">' +
+        '<div class="form-group"><label class="form-label">Date début</label><input type="date" id="ct-debut" class="form-input"/></div>' +
+        '<div class="form-group"><label class="form-label">Date fin</label><input type="date" id="ct-fin" class="form-input"/></div>' +
+      '</div>' +
 
+      '<div class="section-sub-title">📄 Fichier du contrat (PDF)</div>' +
+
+      '<div class="form-group">' +
+        '<div class="upload-zone" id="zone-ct-pdf">' +
+          '<div style="font-size:32px;margin-bottom:8px;">📄</div>' +
+          '<div><strong>Cliquez pour importer le contrat PDF</strong></div>' +
+          '<p>Format PDF uniquement — Max 10 Mo</p>' +
+          '<div id="ct-pdf-name" style="font-size:13px;color:var(--success);font-weight:600;margin-top:8px;"></div>' +
+          '<input type="file" id="ct-pdf-file" accept=".pdf,application/pdf" onchange="previewContratPdf(this)"/>' +
+        '</div>' +
+        '<div class="progress-wrap" id="ct-pdf-progress">' +
+          '<div class="progress-bar"><div class="progress-fill" id="ct-pdf-fill"></div></div>' +
+          '<div class="progress-text" id="ct-pdf-text">0%</div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:#1d4ed8;">' +
+        'ℹ️ Vous pouvez aussi coller directement un lien vers le PDF si vous l\'avez déjà en ligne :' +
+      '</div>' +
+      '<div class="form-group">' +
+        '<label class="form-label">OU coller un lien PDF</label>' +
+        '<input type="url" id="ct-pdf-url" class="form-input" placeholder="https://... (lien direct vers le PDF)"/>' +
+      '</div>' +
+
+      '<button class="btn btn-primary" id="btn-save-contrat" style="width:100%;padding:14px;font-size:15px;margin-top:8px;" onclick="sauvegarderContrat()">' +
+        '💾 Sauvegarder le contrat' +
+      '</button>';
+  }; 
+  window.previewContratPdf = (input) => {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      showToast('Fichier trop lourd (max 10 Mo)', 'error');
+      input.value = '';
+      return;
+    }
+    if (!file.type.includes('pdf')) {
+      showToast('Format PDF uniquement', 'error');
+      input.value = '';
+      return;
+    }
+    document.getElementById('ct-pdf-name').textContent = '✅ ' + file.name;
+    document.getElementById('zone-ct-pdf').classList.add('has-file');
+    showToast('Fichier PDF sélectionné', 'info');
+  };
+
+  window.sauvegarderContrat = async () => {
+    const bien = document.getElementById('ct-bien').value.trim();
+    const client = document.getElementById('ct-client').value.trim();
+
+    if (!bien || !client) {
+      showToast('Le bien et le client sont obligatoires', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('btn-save-contrat');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Sauvegarde...';
+
+    try {
+      let fichierUrl = document.getElementById('ct-pdf-url').value.trim();
+
+      // Upload PDF si fichier sélectionné
+      const pdfFile = document.getElementById('ct-pdf-file').files[0];
+      if (pdfFile) {
+        btn.innerHTML = '<div class="spinner"></div> Upload du PDF...';
+        fichierUrl = await uploadPdfCloudinary(
+          pdfFile,
+          document.getElementById('ct-pdf-fill'),
+          document.getElementById('ct-pdf-text'),
+          document.getElementById('ct-pdf-progress')
+        );
+        showToast('PDF uploadé !', 'success');
+      }
+
+      await addDoc(collection(db, 'contrats'), {
+        bienTitre: bien,
+        clientNom: client,
+        proprietaireNom: document.getElementById('ct-proprio').value.trim(),
+        montantLoyer: parseFloat(document.getElementById('ct-loyer').value) || 0,
+        caution: parseFloat(document.getElementById('ct-caution').value) || 0,
+        avance: parseFloat(document.getElementById('ct-avance').value) || 0,
+        dateDebut: document.getElementById('ct-debut').value,
+        dateFin: document.getElementById('ct-fin').value,
+        fichierUrl: fichierUrl || '',
+        statut: 'actif',
+        createdAt: serverTimestamp()
+      });
+
+      fermerModal();
+      showToast('Contrat sauvegardé !', 'success');
+      chargerContrats();
+
+    } catch (e) {
+      showToast('Erreur : ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '💾 Sauvegarder le contrat';
+    }
+  };
+
+  // Upload PDF sur Cloudinary
+  const uploadPdfCloudinary = (file, fillEl, textEl, wrapEl) => {
+    return new Promise((resolve, reject) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', CLOUDINARY_PRESET);
+      formData.append('folder', 'immo-elite/contrats');
+      formData.append('resource_type', 'raw');
+
+      wrapEl.classList.add('show');
+
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const pct = Math.round((e.loaded / e.total) * 100);
+          fillEl.style.width = pct + '%';
+          textEl.textContent = pct + '%';
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status === 200) {
+          const data = JSON.parse(xhr.responseText);
+          resolve(data.secure_url);
+        } else {
+          reject(new Error('Erreur upload PDF'));
+        }
+      });
+
+      xhr.addEventListener('error', () => reject(new Error('Erreur réseau')));
+
+      xhr.open('POST', 'https://api.cloudinary.com/v1_1/' + CLOUDINARY_NAME + '/raw/upload');
+      xhr.send(formData);
+    });
+  };
+ 
   // FINANCES + GRAPHIQUES
   const chargerFinances = async () => {
     try {
