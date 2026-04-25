@@ -367,6 +367,54 @@
           <div class="form-row"><div class="form-group"><label class="form-label">Surface (m²)</label><input type="number" id="ab-surface" class="form-input" min="0"/></div><div class="form-group"><label class="form-label">Étage</label><input type="text" id="ab-etage" class="form-input"/></div></div>
           <div class="form-row"><div class="form-group"><label class="form-label">Garage</label><select id="ab-garage" class="form-select"><option value="non">Non</option><option value="oui">Oui</option></select></div><div class="form-group"><label class="form-label">Meublé</label><select id="ab-meuble" class="form-select"><option value="non">Non</option><option value="oui">Oui</option></select></div></div>
           <div class="form-group"><label class="form-label">Description <span class="required">*</span></label><textarea id="ab-description" class="form-textarea" required placeholder="Description..."></textarea></div>
+          <div class="section-sub-title">📄 Contrat (PDF/Word)</div>
+          <div class="form-group">
+            <div class="upload-zone" id="zone-ab-contrat">
+              <div style="font-size:28px;margin-bottom:6px;">📄</div>
+              <div><strong>Cliquez pour ajouter le contrat</strong></div>
+              <p>PDF, Word — Le contrat sera visible par les clients</p>
+              <div id="ab-contrat-name" style="font-size:12px;color:var(--success);margin-top:4px;"></div>
+              <input type="file" id="ab-contrat-file" accept=".pdf,.doc,.docx,image/*" onchange="previewAbContrat(this)"/>
+            </div>
+            <div class="progress-wrap" id="ab-contrat-progress">
+              <div class="progress-bar"><div class="progress-fill" id="ab-contrat-fill"></div></div>
+              <div class="progress-text" id="ab-contrat-text">0%</div>
+            </div>
+          </div>
+
+          <div class="section-sub-title">📸 Photos du bien <span class="required">*</span></div>
+          <div class="form-group">
+            <div class="upload-zone" id="zone-ab-photos">
+              <div style="font-size:28px;margin-bottom:6px;">📷</div>
+              <div><strong>Cliquez pour ajouter des photos</strong></div>
+              <p>JPG, PNG — Max 5 Mo par photo</p>
+              <input type="file" id="ab-photos" accept="image/*" multiple onchange="previewAbPhotos(this)"/>
+            </div>
+            <div class="photos-preview" id="ab-photos-preview"></div>
+            <div class="progress-wrap" id="ab-photos-progress">
+              <div class="progress-bar"><div class="progress-fill" id="ab-photos-fill"></div></div>
+              <div class="progress-text" id="ab-photos-text">0%</div>
+            </div>
+          </div>
+
+          <div class="section-sub-title">🎬 Vidéo du bien</div>
+          <div class="form-group">
+            <div class="upload-zone" id="zone-ab-video">
+              <div style="font-size:28px;margin-bottom:6px;">🎬</div>
+              <div><strong>Cliquez pour ajouter une vidéo</strong></div>
+              <p>MP4, MOV — Max 100 Mo</p>
+              <div id="ab-video-name" style="font-size:12px;color:var(--success);margin-top:4px;"></div>
+              <input type="file" id="ab-video" accept="video/*" onchange="previewAbVideo(this)"/>
+            </div>
+            <div class="progress-wrap" id="ab-video-progress">
+              <div class="progress-bar"><div class="progress-fill" id="ab-video-fill"></div></div>
+              <div class="progress-text" id="ab-video-text">0%</div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="btn-ajouter-bien" style="width:100%;padding:14px;font-size:15px;margin-top:8px;">
+            ✅ Publier ce bien
+          </button>
           <div class="section-sub-title">📄 Contrat (PDF)</div>
           <div class="form-group">
             <div class="upload-zone" id="zone-ab-contrat">
@@ -444,7 +492,22 @@
       <div class="card" style="max-width:800px;"><div class="card-header"><span class="card-title">⚙️ Configuration du site</span></div><div class="card-body">
         <form id="form-config" onsubmit="sauvegarderConfig(event)">
           <div class="section-sub-title">🖼️ Identité</div>
-          <div class="form-group"><label class="form-label">Logo (URL)</label><input type="url" id="cfg-logo" class="form-input" placeholder="https://..."/></div>
+                 <div class="form-group">
+            <label class="form-label">Logo de l'agence</label>
+            <div class="upload-zone" id="zone-cfg-logo">
+              <div style="font-size:28px;margin-bottom:6px;">🖼️</div>
+              <div><strong>Cliquez pour importer votre logo</strong></div>
+              <p>JPG, PNG — Max 5 Mo</p>
+              <div id="cfg-logo-name" style="font-size:12px;color:var(--success);margin-top:4px;"></div>
+              <input type="file" id="cfg-logo-file" accept="image/*" onchange="previewCfgLogo(this)"/>
+            </div>
+            <img id="cfg-logo-preview" src="" alt="Logo" style="display:none;width:80px;height:80px;object-fit:cover;border-radius:12px;margin-top:10px;border:2px solid var(--primary);"/>
+            <input type="hidden" id="cfg-logo" value=""/>
+            <div class="progress-wrap" id="cfg-logo-progress">
+              <div class="progress-bar"><div class="progress-fill" id="cfg-logo-fill"></div></div>
+              <div class="progress-text" id="cfg-logo-text">0%</div>
+            </div>
+          </div>
           <div class="form-row"><div class="form-group"><label class="form-label">Nom de l'agence</label><input type="text" id="cfg-nom" class="form-input" placeholder="Immo Elite"/></div><div class="form-group"><label class="form-label">Couleur principale</label><input type="color" id="cfg-couleur" class="form-input" value="#2563eb" style="height:46px;padding:4px;cursor:pointer;"/></div></div>
           <div class="form-group"><label class="form-label">Description</label><textarea id="cfg-description" class="form-textarea" placeholder="Décrivez votre agence..."></textarea></div>
           <div class="section-sub-title">💰 Commission & Devise</div>
@@ -826,7 +889,31 @@
   };
 
   // AJOUTER BIEN AGENCE
-  let abPhotosURLs = []; let abVideoURL = '';
+ let abPhotosURLs = []; let abVideoURL = ''; let abContratURL = '';
+  // PREVIEW CONTRAT
+  window.previewAbContrat = (input) => {
+    const file = input.files[0];
+    if (!file) return;
+    document.getElementById('ab-contrat-name').textContent = '✅ ' + file.name;
+    document.getElementById('zone-ab-contrat').classList.add('has-file');
+    showToast('Contrat sélectionné : ' + file.name, 'info');
+  };
+
+  // PREVIEW LOGO CONFIG
+  window.previewCfgLogo = (input) => {
+    const file = input.files[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { showToast('Image trop lourde (max 5 Mo)', 'error'); input.value = ''; return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const preview = document.getElementById('cfg-logo-preview');
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+    document.getElementById('cfg-logo-name').textContent = '✅ ' + file.name;
+    document.getElementById('zone-cfg-logo').classList.add('has-file');
+  };
   window.previewAbPhotos = (input) => { const files = Array.from(input.files); const preview = document.getElementById('ab-photos-preview'); preview.innerHTML = ''; files.forEach(file => { const reader = new FileReader(); reader.onload = (e) => { const img = document.createElement('img'); img.src = e.target.result; preview.appendChild(img); }; reader.readAsDataURL(file); }); document.getElementById('zone-ab-photos').classList.add('has-file'); };
   window.previewBienContrat = (input) => {
     const file = input.files[0];
@@ -852,7 +939,7 @@
 
   window.ajouterBien = async (e) => {
     e.preventDefault();
-    const titre = document.getElementById('ab-titre').value.trim();
+   contratPdf: abContratURL || '',
     const type = document.getElementById('ab-type').value;
     const cat = document.getElementById('ab-categorie').value;
     const prix = document.getElementById('ab-prix').value;
@@ -861,7 +948,20 @@
     if (photosFiles.length === 0) { showToast('Ajoutez des photos', 'error'); return; }
     const btn = document.getElementById('btn-ajouter-bien'); btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Upload...';
     try {
-      abPhotosURLs = [];
+      // Upload contrat
+      let abContratURL = '';
+      const contratFile = document.getElementById('ab-contrat-file')?.files[0];
+      if (contratFile) {
+        btn.innerHTML = '<div class="spinner"></div> Upload contrat...';
+        abContratURL = await uploadImgBB(
+          contratFile,
+          document.getElementById('ab-contrat-fill'),
+          document.getElementById('ab-contrat-text'),
+          document.getElementById('ab-contrat-progress')
+        );
+        showToast('Contrat uploadé !', 'success');
+      }     
+ abPhotosURLs = [];
       for (let i = 0; i < photosFiles.length; i++) { abPhotosURLs.push(await uploadImgBB(photosFiles[i], document.getElementById('ab-photos-fill'), document.getElementById('ab-photos-text'), document.getElementById('ab-photos-progress'))); }
       const videoFile = document.getElementById('ab-video').files[0];
       // Upload contrat PDF si présent
@@ -1212,9 +1312,69 @@ if (videoFile) { abVideoURL = await uploadCloudinary(videoFile, document.getElem
   window.toggleCompte = async (id, actif) => { if (!confirm(actif ? 'Activer ?' : 'Désactiver ?')) return; try { await updateDoc(doc(db, 'users', id), { actif }); showToast('Mis à jour !', 'success'); chargerComptes(); } catch (e) { showToast('Erreur', 'error'); } };
 
   // CONFIGURATION
-  const chargerConfiguration = async () => { try { const snap = await getDoc(doc(db, 'agence', 'config')); if (!snap.exists()) return; const c = snap.data(); const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; }; set('cfg-logo', c.logo); set('cfg-nom', c.nom); set('cfg-couleur', c.couleurPrimaire || '#2563eb'); set('cfg-description', c.description); set('cfg-commission', c.commission); set('cfg-devise', c.devise); set('cfg-frais-dossier', c.fraisDossier); set('cfg-avance-defaut', c.avanceDefaut); set('cfg-telephone', c.telephone); set('cfg-whatsapp', c.whatsapp); set('cfg-email', c.email); set('cfg-sms', c.sms); set('cfg-adresse', c.adresse); set('cfg-facebook', c.facebook); set('cfg-instagram', c.instagram); set('cfg-tiktok', c.tiktok); set('cfg-youtube', c.youtube); set('cfg-hero-titre', c.heroTitre); set('cfg-hero-desc', c.heroDesc); } catch (e) { console.warn(e); } };
-  window.sauvegarderConfig = async (e) => { e.preventDefault(); const btn = document.getElementById('btn-save-config'); btn.disabled = true; btn.innerHTML = '<div class="spinner"></div> Sauvegarde...'; try { const get = (id) => document.getElementById(id)?.value?.trim() || ''; await setDoc(doc(db, 'agence', 'config'), { logo: get('cfg-logo'), nom: get('cfg-nom'), couleurPrimaire: get('cfg-couleur'), description: get('cfg-description'), commission: get('cfg-commission'), devise: get('cfg-devise'), fraisDossier: get('cfg-frais-dossier'), avanceDefaut: get('cfg-avance-defaut'), telephone: get('cfg-telephone'), whatsapp: get('cfg-whatsapp'), email: get('cfg-email'), sms: get('cfg-sms'), adresse: get('cfg-adresse'), facebook: get('cfg-facebook'), instagram: get('cfg-instagram'), tiktok: get('cfg-tiktok'), youtube: get('cfg-youtube'), heroTitre: get('cfg-hero-titre'), heroDesc: get('cfg-hero-desc'), updatedAt: serverTimestamp() }); if (get('cfg-couleur')) document.documentElement.style.setProperty('--primary', get('cfg-couleur')); showToast('Configuration sauvegardée !', 'success'); } catch (e) { showToast('Erreur', 'error'); } finally { btn.disabled = false; btn.innerHTML = '💾 Sauvegarder la configuration'; } };
+  const chargerConfiguration = async () => { try { const snap = await getDoc(doc(db, 'agence', 'config')); if (!snap.exists()) return; const c = snap.data(); const set = (id, val) => { const el = document.getElementById(id); if (el && val !== undefined) el.value = val; }; set('cfg-logo', c.logo);if (c.logo) {
+  const preview = document.getElementById('cfg-logo-preview');
+  if (preview) { preview.src = c.logo; preview.style.display = 'block'; }
+} set('cfg-nom', c.nom); set('cfg-couleur', c.couleurPrimaire || '#2563eb'); set('cfg-description', c.description); set('cfg-commission', c.commission); set('cfg-devise', c.devise); set('cfg-frais-dossier', c.fraisDossier); set('cfg-avance-defaut', c.avanceDefaut); set('cfg-telephone', c.telephone); set('cfg-whatsapp', c.whatsapp); set('cfg-email', c.email); set('cfg-sms', c.sms); set('cfg-adresse', c.adresse); set('cfg-facebook', c.facebook); set('cfg-instagram', c.instagram); set('cfg-tiktok', c.tiktok); set('cfg-youtube', c.youtube); set('cfg-hero-titre', c.heroTitre); set('cfg-hero-desc', c.heroDesc); } catch (e) { console.warn(e); } };
+  window.sauvegarderConfig = async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('btn-save-config');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Sauvegarde...';
 
+    try {
+      const get = (id) => document.getElementById(id)?.value?.trim() || '';
+
+      // Upload logo si fichier sélectionné
+      const logoFile = document.getElementById('cfg-logo-file')?.files[0];
+      let logoURL = get('cfg-logo');
+
+      if (logoFile) {
+        btn.innerHTML = '<div class="spinner"></div> Upload logo...';
+        logoURL = await uploadImgBB(
+          logoFile,
+          document.getElementById('cfg-logo-fill'),
+          document.getElementById('cfg-logo-text'),
+          document.getElementById('cfg-logo-progress')
+        );
+        document.getElementById('cfg-logo').value = logoURL;
+        showToast('Logo uploadé !', 'success');
+      }
+
+      await setDoc(doc(db, 'agence', 'config'), {
+        logo: logoURL,
+        nom: get('cfg-nom'),
+        couleurPrimaire: get('cfg-couleur'),
+        description: get('cfg-description'),
+        commission: get('cfg-commission'),
+        devise: get('cfg-devise'),
+        fraisDossier: get('cfg-frais-dossier'),
+        avanceDefaut: get('cfg-avance-defaut'),
+        telephone: get('cfg-telephone'),
+        whatsapp: get('cfg-whatsapp'),
+        email: get('cfg-email'),
+        sms: get('cfg-sms'),
+        adresse: get('cfg-adresse'),
+        facebook: get('cfg-facebook'),
+        instagram: get('cfg-instagram'),
+        tiktok: get('cfg-tiktok'),
+        youtube: get('cfg-youtube'),
+        heroTitre: get('cfg-hero-titre'),
+        heroDesc: get('cfg-hero-desc'),
+        updatedAt: serverTimestamp()
+      });
+
+      if (get('cfg-couleur')) document.documentElement.style.setProperty('--primary', get('cfg-couleur'));
+      if (logoURL) document.getElementById('sb-logo').src = logoURL;
+
+      showToast('Configuration sauvegardée !', 'success');
+    } catch (e) {
+      showToast('Erreur : ' + e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '💾 Sauvegarder la configuration';
+    }
+  }; 
   // IMPRESSIONS
   const genererPageImpression = (titre, contenu) => { const w = window.open('', '_blank'); w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>' + titre + '</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#1e293b;}h1{font-size:22px;margin-bottom:20px;}table{width:100%;border-collapse:collapse;font-size:13px;}th{background:#f1f5f9;padding:10px;text-align:left;border:1px solid #e2e8f0;font-weight:700;}td{padding:10px;border:1px solid #e2e8f0;}</style></head><body><div style="border-bottom:3px solid #2563eb;padding-bottom:16px;margin-bottom:20px;"><div style="font-size:24px;font-weight:800;color:#2563eb;">' + (agenceConfig.nom || 'Immo Elite') + '</div><div style="font-size:12px;color:#64748b;">Imprimé le ' + new Date().toLocaleDateString('fr-FR') + ' par ' + (userData.nom || 'Admin') + '</div></div><h1>' + titre + '</h1>' + contenu + '<script>window.print();<\/script></body></html>'); w.document.close(); };
   window.imprimerBiens = () => { genererPageImpression('Liste des biens', '<table><thead><tr><th>Titre</th><th>Type</th><th>Adresse</th><th>Prix</th><th>Statut</th></tr></thead><tbody>' + tousBiens.filter(b => b.statut === 'publie').map(b => '<tr><td>' + (b.titre||'—') + '</td><td>' + getTypeLabel(b.type) + '</td><td>' + (b.adresse||'—') + '</td><td>' + formatPrix(b.prix) + '</td><td>' + (b.statut||'—') + '</td></tr>').join('') + '</tbody></table>'); };
