@@ -1081,6 +1081,41 @@
     .fade-in {
       animation: fadeIn 0.4s ease;
     }
+    /* ========================================
+       FAVORIS
+    ======================================== */
+    .fav-btn {
+      position: absolute;
+      top: 12px;
+      right: 52px;
+      width: 34px;
+      height: 34px;
+      background: rgba(255,255,255,0.9);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      z-index: 2;
+    }
+
+    .fav-btn:hover { transform: scale(1.15); }
+    .fav-btn.active { background: #ef4444; color: white; }
+
+    .fav-bar {
+      background: var(--bg-card);
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .fav-bar.show { display: flex; }
 
     /* ========================================
        RESPONSIVE
@@ -1184,7 +1219,23 @@
     <li><a href="#biens">Nos Biens</a></li>
     <li><a href="#a-propos">À propos</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="inscription-proprietaire.html" class="btn-proprio">🔑 Propriétaire ?</a></li>
+    <li>
+  <a href="inscription-proprietaire.html" class="btn-proprio">
+    🔑 Propriétaire ?
+  </a>
+</li>
+<li>
+  <a href="proprietaire/login.html" class="btn-proprio"
+    style="background:#10b981 !important;">
+    🏠 Espace Proprio
+  </a>
+</li>
+<li>
+  <a href="agence/login.html" class="btn-proprio"
+    style="background:#f59e0b !important;">
+    🏢 Espace Agence
+  </a>
+</li>
     <li>
       <button class="theme-btn" onclick="toggleTheme()">
         <span class="theme-icon">🌙</span>
@@ -1201,6 +1252,66 @@
     </button>
   </div>
 </nav>
+<!-- ===== ACCES RAPIDE ===== -->
+<div style="
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+">
+  <span style="color:#94a3b8;font-size:13px;font-weight:500;">
+    Accès rapide :
+  </span>
+  <a href="proprietaire/login.html" style="
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #10b981;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+  ">
+    🔑 Espace Propriétaire
+  </a>
+  <a href="agence/login.html" style="
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f59e0b;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+  ">
+    🏢 Espace Agence
+  </a>
+  <a href="inscription-proprietaire.html" style="
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    color: #94a3b8;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid #334155;
+    transition: all 0.2s;
+  ">
+    ➕ Devenir propriétaire
+  </a>
+</div>
 
 <!-- ===== HERO ===== -->
 <section class="hero">
@@ -1265,6 +1376,22 @@
       <span class="label">Propriétaires</span>
     </div>
   </div>
+</div>
+<!-- ===== BARRE FAVORIS ===== -->
+<div class="fav-bar" id="fav-bar">
+  <span style="font-size:14px;">❤️ Vous avez <strong id="fav-count">0</strong> bien(s) en favoris</span>
+  <button onclick="afficherFavoris()" style="
+    background:var(--primary);color:white;border:none;
+    padding:8px 16px;border-radius:8px;font-size:13px;
+    font-weight:600;cursor:pointer;">
+    Voir mes favoris
+  </button>
+  <button onclick="masquerFavoris()" style="
+    background:var(--border);color:var(--text);border:none;
+    padding:8px 16px;border-radius:8px;font-size:13px;
+    cursor:pointer;">
+    Voir tous les biens
+  </button>
 </div>
 
 <!-- ===== CATEGORIES ===== -->
@@ -1363,7 +1490,18 @@
         <li><a href="#contact">Contact</a></li>
         <li><a href="inscription-proprietaire.html">🔑 Propriétaire</a></li>
         <li><a href="proprietaire/login.html">Espace propriétaire</a></li>
-        <li><a href="agence/login.html">Espace agence</a></li>
+        <li>
+  <a href="proprietaire/login.html"
+    style="color:#10b981;">
+    🔑 Espace Propriétaire
+  </a>
+</li>
+<li>
+  <a href="agence/login.html"
+    style="color:#f59e0b;">
+    🏢 Espace Agence
+  </a>
+</li>
       </ul>
     </div>
 
@@ -1392,6 +1530,49 @@
   </div>
 </footer>
 
+<!-- ===== BOUTONS ACCES RAPIDE FLOTTANTS ===== -->
+<div style="
+  position: fixed;
+  bottom: 30px;
+  left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 100;
+">
+  <a href="proprietaire/login.html" style="
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #10b981;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 25px;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(16,185,129,0.4);
+    transition: all 0.2s;
+  ">
+    🔑 Propriétaire
+  </a>
+  <a href="agence/login.html" style="
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f59e0b;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 25px;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(245,158,11,0.4);
+    transition: all 0.2s;
+  ">
+    🏢 Agence
+  </a>
+</div>
 <!-- ===== BOUTONS FLOTTANTS ===== -->
 <div class="contact-float">
   <a id="float-wa" href="#" target="_blank" class="float-btn btn-wa" title="WhatsApp">💬</a>
@@ -1735,6 +1916,11 @@
         '</div>' +
         '<div class="statut-badge" style="background:' + sc + ';">' + sl + '</div>' +
       '</div>' +
+'<button class="fav-btn ' + (estFavori(b.id) ? 'active' : '') + '" ' +
+  'onclick="event.stopPropagation();toggleFavori(\'' + b.id + '\')" ' +
+  'title="Ajouter aux favoris">' +
+  (estFavori(b.id) ? '❤️' : '🤍') +
+'</button>' +
       '<div class="bien-card-body">' +
         '<div class="bien-card-type">' + tl + ' • ' + (b.categorie || 'Location') + '</div>' +
         '<h3 class="bien-card-titre">' + (b.titre || 'Bien immobilier') + '</h3>' +
@@ -1996,6 +2182,84 @@
   document.getElementById('filtre-prix').addEventListener('change', filtrerBiens);
 
   // ============================================
+  // FAVORIS CLIENT
+  // ============================================
+  const getFavoris = () => {
+    try {
+      return JSON.parse(localStorage.getItem('favoris') || '[]');
+    } catch (e) { return []; }
+  };
+
+  const estFavori = (id) => {
+    return getFavoris().includes(id);
+  };
+
+  window.toggleFavori = (id) => {
+    let favoris = getFavoris();
+    if (favoris.includes(id)) {
+      favoris = favoris.filter(f => f !== id);
+      showToast('Retiré des favoris', 'info');
+    } else {
+      favoris.push(id);
+      showToast('Ajouté aux favoris ❤️', 'success');
+    }
+    localStorage.setItem('favoris', JSON.stringify(favoris));
+    majFavBar();
+    afficherBiens(tousBiens.filter(b => {
+      const type = document.getElementById('filtre-type').value;
+      const categorie = document.getElementById('filtre-categorie').value;
+      const recherche = document.getElementById('filtre-recherche').value.toLowerCase().trim();
+      const prixRange = document.getElementById('filtre-prix').value;
+      if (type && b.type !== type) return false;
+      if (categorie && b.categorie !== categorie) return false;
+      if (recherche) {
+        const texte = [b.titre, b.adresse, b.description, b.ville, b.quartier].join(' ').toLowerCase();
+        if (!texte.includes(recherche)) return false;
+      }
+      if (prixRange) {
+        const parts = prixRange.split('-');
+        const min = parseInt(parts[0]);
+        const max = parseInt(parts[1]);
+        if (b.prix < min || b.prix > max) return false;
+      }
+      return true;
+    }));
+  };
+
+  window.afficherFavoris = () => {
+    const favoris = getFavoris();
+    const biensFav = tousBiens.filter(b => favoris.includes(b.id));
+    afficherBiens(biensFav);
+    document.getElementById('biens').scrollIntoView({ behavior: 'smooth' });
+  };
+
+  window.masquerFavoris = () => {
+    filtrerBiens();
+  };
+
+  const majFavBar = () => {
+    const favoris = getFavoris();
+    const bar = document.getElementById('fav-bar');
+    const count = document.getElementById('fav-count');
+    if (favoris.length > 0) {
+      bar.classList.add('show');
+      count.textContent = favoris.length;
+    } else {
+      bar.classList.remove('show');
+    }
+  };
+
+  const showToast = (msg, type = 'success') => {
+    const colors = { success:'#10b981', error:'#ef4444', warning:'#f59e0b', info:'#3b82f6' };
+    const icons = { success:'✅', error:'❌', warning:'⚠️', info:'ℹ️' };
+    const el = document.createElement('div');
+    el.className = 'toast-item';
+    el.style.background = colors[type];
+    el.innerHTML = '<span>' + icons[type] + '</span><span>' + msg + '</span>';
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => el.remove(), 4500);
+  };  
+// ============================================
   // INITIALISATION
   // ============================================
   const init = async () => {
@@ -2009,7 +2273,7 @@
   };
 
   init();
-
+  majFavBar();
 </script>
 </body>
 </html>

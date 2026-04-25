@@ -1404,35 +1404,65 @@
     <!-- ========================
          PAGE : FINANCES
     ========================= -->
-    <section class="page-section" id="page-finances">
+       <section class="page-section" id="page-finances">
       <div class="stats-grid" style="margin-bottom:24px;">
         <div class="stat-card">
           <div class="stat-icon" style="background:#dcfce7;">💰</div>
           <div class="stat-info">
-            <h3 id="fin-total" style="font-size:15px;">0 FCFA</h3>
+            <h3 id="fin-total" style="font-size:15px;">0</h3>
             <p>Revenus totaux</p>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon" style="background:#fee2e2;">📉</div>
           <div class="stat-info">
-            <h3 id="fin-depenses" style="font-size:15px;">0 FCFA</h3>
+            <h3 id="fin-depenses" style="font-size:15px;">0</h3>
             <p>Dépenses totales</p>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon" style="background:#dbeafe;">📊</div>
           <div class="stat-info">
-            <h3 id="fin-net" style="font-size:15px;">0 FCFA</h3>
+            <h3 id="fin-net" style="font-size:15px;">0</h3>
             <p>Solde net</p>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon" style="background:#ede9fe;">💵</div>
           <div class="stat-info">
-            <h3 id="fin-commissions" style="font-size:15px;">0 FCFA</h3>
+            <h3 id="fin-commissions" style="font-size:15px;">0</h3>
             <p>Commissions</p>
           </div>
+        </div>
+      </div>
+
+      <!-- GRAPHIQUES -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📊 Revenus vs Dépenses (6 derniers mois)</span>
+          </div>
+          <div class="card-body">
+            <canvas id="chart-revenus" height="250"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🏠 Répartition par catégorie</span>
+          </div>
+          <div class="card-body">
+            <canvas id="chart-categories" height="250"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- GRAPHIQUE BIENS -->
+      <div class="card" style="margin-bottom:24px;">
+        <div class="card-header">
+          <span class="card-title">🏠 Statut des biens</span>
+        </div>
+        <div class="card-body">
+          <canvas id="chart-biens" height="150"></canvas>
         </div>
       </div>
 
@@ -1465,7 +1495,6 @@
         </div>
       </div>
     </section>
-
     <!-- ========================
          PAGE : IMPRESSIONS
     ========================= -->
@@ -1666,7 +1695,52 @@
               </div>
             </div>
 
-            <div class="section-sub-title">📝 Textes Hero</div>
+<!-- COMMISSION & DEVISE -->
+<div class="section-sub-title">💰 Paramètres financiers</div>
+
+<div class="form-row">
+  <div class="form-group">
+    <label class="form-label">Commission agence (%)</label>
+    <input type="number" id="cfg-commission" class="form-input"
+      placeholder="Ex: 10" min="0" max="100"/>
+    <span class="form-hint">
+      Pourcentage prélevé sur chaque loyer
+    </span>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Devise</label>
+    <select id="cfg-devise" class="form-select">
+      <option value="FCFA">FCFA</option>
+      <option value="€">Euro (€)</option>
+      <option value="$">Dollar ($)</option>
+      <option value="£">Livre (£)</option>
+      <option value="MAD">Dirham (MAD)</option>
+      <option value="GNF">Franc Guinéen (GNF)</option>
+      <option value="XOF">Franc CFA (XOF)</option>
+    </select>
+  </div>
+</div>
+
+<div class="form-row">
+  <div class="form-group">
+    <label class="form-label">Frais de dossier (fixe)</label>
+    <input type="number" id="cfg-frais-dossier" class="form-input"
+      placeholder="Ex: 50000" min="0"/>
+    <span class="form-hint">
+      Frais fixes demandés au client à la réservation
+    </span>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Mois d'avance par défaut</label>
+    <select id="cfg-avance-defaut" class="form-select">
+      <option value="1">1 mois</option>
+      <option value="2">2 mois</option>
+      <option value="3">3 mois</option>
+      <option value="6">6 mois</option>
+    </select>
+  </div>
+</div>            
+<div class="section-sub-title">📝 Textes Hero</div>
             <div class="form-group">
               <label class="form-label">Titre de la page d'accueil</label>
               <input type="text" id="cfg-hero-titre" class="form-input"
@@ -2202,6 +2276,7 @@
   // ============================================
   // VALIDER UN BIEN
   // ============================================
+  
   window.validerBien = async (id) => {
     if (!confirm('Valider et publier ce bien ?')) return;
     try {
@@ -2209,7 +2284,30 @@
         statut: 'publie',
         dateValidation: serverTimestamp()
       });
-      showToast('Bien publié avec succès !', 'success');
+
+      // Notifier le propriétaire
+      const bien = tousBiens.find(b => b.id === id);
+      if (bien && bien.proprietaireId) {
+        try {
+          const propSnap = await getDoc(doc(db, 'proprietaires', bien.proprietaireId));
+          if (propSnap.exists()) {
+            const p = propSnap.data();
+            if (p.telephone) {
+              const wa = p.telephone.replace(/\D/g, '');
+              const msg =
+                '✅ *BIEN VALIDÉ ET PUBLIÉ*\n\n' +
+                '🏠 *Bien :* ' + (bien.titre || '') + '\n' +
+                '📍 *Adresse :* ' + (bien.adresse || '') + '\n' +
+                '💰 *Prix :* ' + formatPrix(bien.prix) + '\n\n' +
+                'Votre bien est maintenant visible par les clients !\n\n' +
+                '_' + (agenceConfig.nom || 'Immo Elite') + '_';
+              window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(msg), '_blank');
+            }
+          }
+        } catch (_) {}
+      }
+
+      showToast('Bien publié ! Propriétaire notifié.', 'success');
       await chargerDashboard();
       chargerBiensAttente();
       chargerBiens();
@@ -2221,23 +2319,147 @@
   // ============================================
   // REFUSER UN BIEN
   // ============================================
-  window.refuserBien = async (id) => {
+   window.refuserBien = async (id) => {
     const motif = prompt('Motif du refus (sera visible par le propriétaire) :');
     if (motif === null) return;
     try {
+      const bien = tousBiens.find(b => b.id === id);
+
       await updateDoc(doc(db, 'biens', id), {
         statut: 'refuse',
         motifRefus: motif || 'Non conforme',
         dateRefus: serverTimestamp()
       });
-      showToast('Bien refusé.', 'warning');
+  // ============================================
+  // QUITTANCE DE LOYER MENSUELLE
+  // ============================================
+  window.genererQuittance = (id) => {
+    const r = toutesReservations.find(x => x.id === id);
+    if (!r) { showToast('Réservation introuvable', 'error'); return; }
+
+    const devise = agenceConfig.devise || 'FCFA';
+    const commission = parseFloat(agenceConfig.commission) || 10;
+    const nomAgence = agenceConfig.nom || 'Immo Elite';
+    const telAgence = agenceConfig.telephone || '';
+    const emailAgence = agenceConfig.email || '';
+    const adresseAgence = agenceConfig.adresse || '';
+
+    const moisActuel = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    const montantLoyer = r.montantLoyer || r.totalEntree || 0;
+    const montantCommission = Math.round(montantLoyer * commission / 100);
+    const montantNet = montantLoyer - montantCommission;
+
+    const w = window.open('', '_blank');
+    w.document.write(
+      '<!DOCTYPE html><html><head><meta charset="UTF-8"/>' +
+      '<title>Quittance de loyer - ' + moisActuel + '</title>' +
+      '<style>' +
+        'body{font-family:Arial,sans-serif;padding:40px;color:#1e293b;max-width:700px;margin:0 auto;}' +
+        '.header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #2563eb;padding-bottom:20px;margin-bottom:30px;}' +
+        '.logo-text{font-size:24px;font-weight:800;color:#2563eb;}' +
+        '.doc-title{text-align:center;font-size:22px;font-weight:800;color:#2563eb;margin-bottom:30px;padding:14px;background:#eff6ff;border-radius:8px;}' +
+        'table{width:100%;border-collapse:collapse;margin-bottom:20px;}' +
+        'th{background:#f1f5f9;padding:10px 14px;text-align:left;font-size:12px;border:1px solid #e2e8f0;}' +
+        'td{padding:10px 14px;border:1px solid #e2e8f0;font-size:13px;}' +
+        '.total-row{background:#eff6ff;font-weight:700;}' +
+        '.box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:20px;}' +
+        '.signature{margin-top:40px;display:flex;justify-content:space-between;}' +
+        '.sig-box{width:45%;text-align:center;border-top:1px solid #1e293b;padding-top:10px;font-size:12px;color:#64748b;}' +
+        '.footer-doc{text-align:center;margin-top:40px;font-size:11px;color:#94a3b8;border-top:1px solid #e2e8f0;padding-top:16px;}' +
+      '</style></head><body>' +
+
+      '<div class="header">' +
+        '<div>' +
+          '<div class="logo-text">' + nomAgence + '</div>' +
+          '<div style="font-size:12px;color:#64748b;margin-top:4px;">' + adresseAgence + '</div>' +
+          '<div style="font-size:12px;color:#64748b;">📞 ' + telAgence + ' | ✉️ ' + emailAgence + '</div>' +
+        '</div>' +
+        '<div style="text-align:right;">' +
+          '<div style="font-size:12px;color:#64748b;">Date : ' + new Date().toLocaleDateString('fr-FR') + '</div>' +
+          '<div style="font-size:12px;color:#64748b;">Réf : QTL-' + r.id.substring(0, 8).toUpperCase() + '</div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="doc-title">📋 QUITTANCE DE LOYER — ' + moisActuel.toUpperCase() + '</div>' +
+
+      '<div class="box">' +
+        '<h3 style="margin-bottom:10px;font-size:14px;">👤 Locataire</h3>' +
+        '<table>' +
+          '<tr><td style="font-weight:700;width:40%;">Nom</td><td>' + (r.clientNom || '—') + '</td></tr>' +
+          '<tr><td style="font-weight:700;">Téléphone</td><td>' + (r.clientTel || '—') + '</td></tr>' +
+          '<tr><td style="font-weight:700;">Email</td><td>' + (r.clientEmail || '—') + '</td></tr>' +
+        '</table>' +
+      '</div>' +
+
+      '<div class="box">' +
+        '<h3 style="margin-bottom:10px;font-size:14px;">🏠 Bien loué</h3>' +
+        '<table>' +
+          '<tr><td style="font-weight:700;width:40%;">Bien</td><td>' + (r.bienTitre || '—') + '</td></tr>' +
+          '<tr><td style="font-weight:700;">Adresse</td><td>' + (r.bienAdresse || '—') + '</td></tr>' +
+          '<tr><td style="font-weight:700;">Période</td><td>' + moisActuel + '</td></tr>' +
+        '</table>' +
+      '</div>' +
+
+      '<div class="box">' +
+        '<h3 style="margin-bottom:10px;font-size:14px;">💰 Détails du paiement</h3>' +
+        '<table>' +
+          '<tr><td style="font-weight:700;width:40%;">Montant du loyer</td><td style="font-weight:700;color:#2563eb;">' + new Intl.NumberFormat('fr-FR').format(montantLoyer) + ' ' + devise + '</td></tr>' +
+          '<tr><td style="font-weight:700;">Commission agence (' + commission + '%)</td><td style="color:#ef4444;">-' + new Intl.NumberFormat('fr-FR').format(montantCommission) + ' ' + devise + '</td></tr>' +
+          '<tr class="total-row"><td style="font-weight:700;">Net propriétaire</td><td style="color:#10b981;font-size:15px;">' + new Intl.NumberFormat('fr-FR').format(montantNet) + ' ' + devise + '</td></tr>' +
+        '</table>' +
+      '</div>' +
+
+      '<p style="font-size:12px;color:#64748b;line-height:1.7;margin-bottom:20px;">' +
+        'Le bailleur soussigné reconnaît avoir reçu de <strong>' + (r.clientNom || '') + '</strong> ' +
+        'la somme de <strong>' + new Intl.NumberFormat('fr-FR').format(montantLoyer) + ' ' + devise + '</strong> ' +
+        'au titre du loyer du mois de <strong>' + moisActuel + '</strong> ' +
+        'pour le bien situé à <strong>' + (r.bienAdresse || '') + '</strong>.' +
+      '</p>' +
+
+      '<div class="signature">' +
+        '<div class="sig-box">Signature du bailleur<br/><br/><br/>' + nomAgence + '</div>' +
+        '<div class="sig-box">Signature du locataire<br/><br/><br/>' + (r.clientNom || '') + '</div>' +
+      '</div>' +
+
+      '<div class="footer-doc">' +
+        '<p>' + nomAgence + ' | ' + adresseAgence + ' | ' + telAgence + '</p>' +
+        '<p>Ce document est une quittance de loyer officielle</p>' +
+      '</div>' +
+
+      '<script>window.print();<\/script>' +
+      '</body></html>'
+    );
+    w.document.close();
+  };
+
+      // Notifier le propriétaire
+      if (bien && bien.proprietaireId) {
+        try {
+          const propSnap = await getDoc(doc(db, 'proprietaires', bien.proprietaireId));
+          if (propSnap.exists()) {
+            const p = propSnap.data();
+            if (p.telephone) {
+              const wa = p.telephone.replace(/\D/g, '');
+              const msg =
+                '❌ *BIEN REFUSÉ*\n\n' +
+                '🏠 *Bien :* ' + (bien.titre || '') + '\n' +
+                '📍 *Adresse :* ' + (bien.adresse || '') + '\n\n' +
+                '📝 *Motif :* ' + (motif || 'Non conforme') + '\n\n' +
+                'Veuillez corriger et resoumettre.\n\n' +
+                '_' + (agenceConfig.nom || 'Immo Elite') + '_';
+              window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(msg), '_blank');
+            }
+          }
+        } catch (_) {}
+      }
+
+      showToast('Bien refusé. Propriétaire notifié.', 'warning');
       await chargerDashboard();
       chargerBiensAttente();
     } catch (e) {
       showToast('Erreur : ' + e.message, 'error');
     }
   };
-
   // ============================================
   // MODIFIER CONDITIONS BIEN
   // ============================================
@@ -2351,16 +2573,77 @@
   // ============================================
   // SUPPRIMER BIEN
   // ============================================
-  window.supprimerBien = async (id) => {
+  // ============================================
+  // HISTORIQUE LOCATAIRES
+  // ============================================
+  window.voirHistorique = async (bienId) => {
+    document.getElementById('modal-titre').textContent = '📋 Historique des locataires';
+    document.getElementById('modal-overlay').style.display = 'flex';
+    document.getElementById('modal-body').innerHTML =
+      '<div style="text-align:center;padding:30px;"><div class="loader" style="margin:0 auto;"></div></div>';
+
+    try {
+      const q = query(collection(db, 'reservations'), where('bienId', '==', bienId));
+      const snap = await getDocs(q);
+      const historique = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      if (historique.length === 0) {
+        document.getElementById('modal-body').innerHTML =
+          '<div class="empty-state"><div class="empty-icon">📋</div>' +
+          '<h3>Aucun historique</h3>' +
+          '<p>Aucun locataire n\'a encore occupé ce bien.</p></div>';
+        return;
+      }
+
+      const devise = agenceConfig.devise || 'FCFA';
+
+      document.getElementById('modal-body').innerHTML =
+        '<div style="margin-bottom:16px;font-size:13px;color:var(--text-light);">' +
+          historique.length + ' locataire(s) au total' +
+        '</div>' +
+        '<div class="table-wrap"><table>' +
+        '<thead><tr>' +
+          '<th>Locataire</th><th>Téléphone</th><th>Date entrée</th>' +
+          '<th>Durée</th><th>Loyer</th><th>Statut</th>' +
+        '</tr></thead><tbody>' +
+        historique.map(h => {
+          const statutH = {
+            en_attente: '<span class="badge badge-warning">⏳ En attente</span>',
+            confirme: '<span class="badge badge-success">✅ Confirmé</span>',
+            loue: '<span class="badge badge-info">🔑 Loué</span>',
+            annule: '<span class="badge badge-danger">❌ Annulé</span>',
+            termine: '<span class="badge badge-gray">✔️ Terminé</span>'
+          };
+
+          return '<tr>' +
+            '<td><strong>' + (h.clientNom || '—') + '</strong></td>' +
+            '<td><a href="tel:' + (h.clientTel || '') + '" style="color:var(--primary);">' + (h.clientTel || '—') + '</a></td>' +
+            '<td>' + (h.dateDebut || '—') + '</td>' +
+            '<td>' + (h.duree ? h.duree + ' mois' : '—') + '</td>' +
+            '<td style="font-weight:700;color:var(--primary);">' + new Intl.NumberFormat('fr-FR').format(h.montantLoyer || 0) + ' ' + devise + '</td>' +
+            '<td>' + (statutH[h.statut] || h.statut) + '</td>' +
+          '</tr>';
+        }).join('') +
+        '</tbody></table></div>';
+
+    } catch (e) {
+      document.getElementById('modal-body').innerHTML =
+        '<p style="color:var(--danger);">Erreur : ' + e.message + '</p>';
+    }
+  };  
+window.supprimerBien = async (id) => {
     if (!confirm('Supprimer définitivement ce bien ?')) return;
     try {
       await deleteDoc(doc(db, 'biens', id));
       showToast('Bien supprimé', 'success');
       chargerBiens();
       chargerDashboard();
-    } catch (e) {
+    } '<button class="btn btn-danger btn-sm" onclick="supprimerBien(\'' + b.id + '\');fermerModal()">🗑️ Supprimer</button>' +
+'<button class="btn btn-danger btn-sm" onclick="supprimerBien(\'' + b.id + '\');fermerModal()">🗑️ Supprimer</button>' +
+catch (e) {
       showToast('Erreur : ' + e.message, 'error');
     }
+
   };
 
   // ============================================
@@ -2574,40 +2857,61 @@
     }
   };
 
-  window.filtrerReservations = () => {
-    const statut = document.getElementById('filtre-res-statut')?.value || '';
-    const tbody  = document.getElementById('tbody-reservations');
-    let filtres  = toutesReservations;
-    if (statut) filtres = filtres.filter(r => r.statut === statut);
+ 
+window.filtrerReservations = () => {
+  const statut = document.getElementById('filtre-res-statut')?.value || '';
+  const tbody  = document.getElementById('tbody-reservations');
+  let filtres  = toutesReservations;
 
-    if (filtres.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-light);">Aucune réservation</td></tr>';
-      return;
-    }
+  if (statut) filtres = filtres.filter(r => r.statut === statut);
 
-    tbody.innerHTML = filtres.map(r =>
-      '<tr>' +
+  if (filtres.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-light);">Aucune réservation</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtres.map(r =>
+    '<tr>' +
       '<td><strong>' + (r.bienTitre || '—') + '</strong></td>' +
       '<td>' + (r.clientNom || '—') + '</td>' +
-      '<td><a href="tel:' + (r.clientTel||'') + '" style="color:var(--primary);">' + (r.clientTel || '—') + '</a></td>' +
-      '<td><a href="mailto:' + (r.clientEmail||'') + '" style="color:var(--primary);">' + (r.clientEmail || '—') + '</a></td>' +
+      '<td><a href="tel:' + (r.clientTel || '') + '" style="color:var(--primary);">' + (r.clientTel || '—') + '</a></td>' +
+      '<td><a href="mailto:' + (r.clientEmail || '') + '" style="color:var(--primary);">' + (r.clientEmail || '—') + '</a></td>' +
       '<td>' + (r.dateDebut || '—') + '</td>' +
       '<td>' + (r.duree ? r.duree + ' mois' : '—') + '</td>' +
       '<td style="font-weight:700;color:var(--primary);">' + formatPrix(r.totalEntree) + '</td>' +
       '<td>' + (resStatutBadge[r.statut] || r.statut) + '</td>' +
       '<td>' +
-        '<div style="display:flex;gap:4px;">' +
+        '<div style="display:flex;gap:4px;flex-wrap:wrap;">' +
+
           (r.statut === 'en_attente'
-            ? '<button class="btn btn-success btn-xs" onclick="confirmerReservation(\'' + r.id + '\')">✅</button>' +
-              '<button class="btn btn-danger btn-xs" onclick="annulerReservation(\'' + r.id + '\')">❌</button>'
+            ? '<button class="btn btn-success btn-xs" onclick="confirmerReservation(\'' + r.id + '\')">✅ Confirmer</button>'
             : '') +
+
+          (r.statut === 'en_attente'
+            ? '<button class="btn btn-danger btn-xs" onclick="annulerReservation(\'' + r.id + '\')">❌</button>'
+            : '') +
+
+          (r.statut === 'confirme'
+            ? '<button class="btn btn-primary btn-xs" onclick="finaliserLocation(\'' + r.id + '\')">🔑 Louer</button>'
+            : '') +
+
+          (r.statut === 'loue'
+            ? '<button class="btn btn-warning btn-xs" onclick="libererBien(\'' + r.id + '\')">🔓 Libérer</button>'
+            : '') +
+
           '<button class="btn btn-outline btn-xs" onclick="voirReservation(\'' + r.id + '\')">👁️</button>' +
+
+          '<button class="btn btn-purple btn-xs" onclick="genererRecu(\'' + r.id + '\')">🧾 Reçu</button>' +
+(r.statut === 'loue'
+  ? '<button class="btn btn-primary btn-xs" onclick="genererQuittance(\'' + r.id + '\')">📋 Quittance</button>'
+  : '') +
+
         '</div>' +
       '</td>' +
-      '</tr>'
-    ).join('');
-  };
-
+    '</tr>'
+  ).join('');
+};
+ 
   window.confirmerReservation = async (id) => {
     if (!confirm('Confirmer cette réservation ?')) return;
     try {
@@ -2615,16 +2919,53 @@
         statut: 'confirme',
         dateConfirmation: serverTimestamp()
       });
-      showToast('Réservation confirmée !', 'success');
+
+      // Notification WhatsApp au client
+      const r = toutesReservations.find(x => x.id === id);
+      if (r && r.clientTel) {
+        const wa = r.clientTel.replace(/\D/g, '');
+        const devise = agenceConfig.devise || 'FCFA';
+        const msg =
+          '✅ *RÉSERVATION CONFIRMÉE*\n\n' +
+          '🏠 *Bien :* ' + (r.bienTitre || '') + '\n' +
+          '📍 *Adresse :* ' + (r.bienAdresse || '') + '\n' +
+          '📅 *Date entrée :* ' + (r.dateDebut || '') + '\n' +
+          '⏳ *Durée :* ' + (r.duree || '') + ' mois\n' +
+          '💰 *Total à payer :* ' + formatPrix(r.totalEntree) + '\n\n' +
+          '📞 Contactez-nous pour finaliser.\n' +
+          '_' + (agenceConfig.nom || 'Immo Elite') + '_';
+        window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(msg), '_blank');
+      }
+
+      showToast('Réservation confirmée ! Client notifié.', 'success');
       chargerReservations();
+      chargerDashboard();
     } catch (e) { showToast('Erreur : ' + e.message, 'error'); }
   };
 
-  window.annulerReservation = async (id) => {
+    window.annulerReservation = async (id) => {
     if (!confirm('Annuler cette réservation ?')) return;
     try {
-      await updateDoc(doc(db, 'reservations', id), { statut: 'annule' });
-      showToast('Réservation annulée', 'warning');
+      const r = toutesReservations.find(x => x.id === id);
+
+      await updateDoc(doc(db, 'reservations', id), {
+        statut: 'annule',
+        dateAnnulation: serverTimestamp()
+      });
+
+      // Notification WhatsApp au client
+      if (r && r.clientTel) {
+        const wa = r.clientTel.replace(/\D/g, '');
+        const msg =
+          '❌ *RÉSERVATION ANNULÉE*\n\n' +
+          '🏠 *Bien :* ' + (r.bienTitre || '') + '\n\n' +
+          'Votre réservation a été annulée.\n' +
+          'Pour plus d\'informations, contactez-nous.\n\n' +
+          '_' + (agenceConfig.nom || 'Immo Elite') + '_';
+        window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(msg), '_blank');
+      }
+
+      showToast('Réservation annulée. Client notifié.', 'warning');
       chargerReservations();
     } catch (e) { showToast('Erreur : ' + e.message, 'error'); }
   };
@@ -2981,41 +3322,158 @@
   // ============================================
   // FINANCES
   // ============================================
-  const chargerFinances = async () => {
+   const chargerFinances = async () => {
     try {
       const snap = await getDocs(collection(db, 'finances'));
       toutesFinances = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
+      const devise = agenceConfig.devise || 'FCFA';
       const revenus    = toutesFinances.filter(f => f.type === 'revenu').reduce((s,f) => s + (f.montant||0), 0);
       const depenses   = toutesFinances.filter(f => f.type === 'depense').reduce((s,f) => s + (f.montant||0), 0);
       const net        = revenus - depenses;
       const commissions = toutesFinances.filter(f => f.categorie === 'commission').reduce((s,f) => s + (f.montant||0), 0);
 
-      document.getElementById('fin-total').textContent       = formatPrix(revenus);
-      document.getElementById('fin-depenses').textContent    = formatPrix(depenses);
-      document.getElementById('fin-net').textContent         = formatPrix(net);
-      document.getElementById('fin-commissions').textContent = formatPrix(commissions);
+      document.getElementById('fin-total').textContent       = new Intl.NumberFormat('fr-FR').format(revenus) + ' ' + devise;
+      document.getElementById('fin-depenses').textContent    = new Intl.NumberFormat('fr-FR').format(depenses) + ' ' + devise;
+      document.getElementById('fin-net').textContent         = new Intl.NumberFormat('fr-FR').format(net) + ' ' + devise;
+      document.getElementById('fin-commissions').textContent = new Intl.NumberFormat('fr-FR').format(commissions) + ' ' + devise;
 
+      // Tableau
       const tbody = document.getElementById('tbody-finances');
       if (toutesFinances.length === 0) {
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-light);">Aucune transaction</td></tr>';
-        return;
+      } else {
+        tbody.innerHTML = toutesFinances.map(f =>
+          '<tr>' +
+          '<td>' + formatDate(f.date || f.createdAt) + '</td>' +
+          '<td><span class="badge ' + (f.type === 'revenu' ? 'badge-success' : 'badge-danger') + '">' +
+            (f.type === 'revenu' ? '📈 Revenu' : '📉 Dépense') + '</span></td>' +
+          '<td><span class="badge badge-gray">' + (f.categorie || '—') + '</span></td>' +
+          '<td>' + (f.description || '—') + '</td>' +
+          '<td style="font-weight:700;color:' + (f.type === 'revenu' ? 'var(--success)' : 'var(--danger)') + ';">' +
+            (f.type === 'revenu' ? '+' : '-') + new Intl.NumberFormat('fr-FR').format(f.montant || 0) + ' ' + devise + '</td>' +
+          '</tr>'
+        ).join('');
       }
 
-      tbody.innerHTML = toutesFinances.map(f =>
-        '<tr>' +
-        '<td>' + formatDate(f.date || f.createdAt) + '</td>' +
-        '<td><span class="badge ' + (f.type === 'revenu' ? 'badge-success' : 'badge-danger') + '">' +
-          (f.type === 'revenu' ? '📈 Revenu' : '📉 Dépense') + '</span></td>' +
-        '<td><span class="badge badge-gray">' + (f.categorie || '—') + '</span></td>' +
-        '<td>' + (f.description || '—') + '</td>' +
-        '<td style="font-weight:700;color:' + (f.type === 'revenu' ? 'var(--success)' : 'var(--danger)') + ';">' +
-          (f.type === 'revenu' ? '+' : '-') + formatPrix(f.montant) + '</td>' +
-        '</tr>'
-      ).join('');
+      // GRAPHIQUE REVENUS VS DEPENSES
+      dessinerGraphiques();
+
     } catch (e) { showToast('Erreur finances : ' + e.message, 'error'); }
   };
 
+  // ============================================
+  // DESSINER GRAPHIQUES
+  // ============================================
+  const dessinerGraphiques = () => {
+    const moisNoms = [];
+    const revenusMois = [];
+    const depensesMois = [];
+
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const mois = d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
+      const moisNum = d.getMonth();
+      const annee = d.getFullYear();
+      moisNoms.push(mois);
+
+      const rev = toutesFinances.filter(f => {
+        if (f.type !== 'revenu') return false;
+        const fd = f.date ? new Date(f.date) : (f.createdAt?.seconds ? new Date(f.createdAt.seconds * 1000) : null);
+        return fd && fd.getMonth() === moisNum && fd.getFullYear() === annee;
+      }).reduce((s, f) => s + (f.montant || 0), 0);
+
+      const dep = toutesFinances.filter(f => {
+        if (f.type !== 'depense') return false;
+        const fd = f.date ? new Date(f.date) : (f.createdAt?.seconds ? new Date(f.createdAt.seconds * 1000) : null);
+        return fd && fd.getMonth() === moisNum && fd.getFullYear() === annee;
+      }).reduce((s, f) => s + (f.montant || 0), 0);
+
+      revenusMois.push(rev);
+      depensesMois.push(dep);
+    }
+
+    // Graphique barres
+    const ctx1 = document.getElementById('chart-revenus');
+    if (ctx1 && ctx1.getContext) {
+      if (window.chartRevenus) window.chartRevenus.destroy();
+      window.chartRevenus = new Chart(ctx1.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: moisNoms,
+          datasets: [
+            { label: 'Revenus', data: revenusMois, backgroundColor: '#10b981', borderRadius: 6 },
+            { label: 'Dépenses', data: depensesMois, backgroundColor: '#ef4444', borderRadius: 6 }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'bottom' } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+
+    // Graphique catégories (donut)
+    const categories = {};
+    toutesFinances.filter(f => f.type === 'revenu').forEach(f => {
+      const cat = f.categorie || 'autre';
+      categories[cat] = (categories[cat] || 0) + (f.montant || 0);
+    });
+
+    const ctx2 = document.getElementById('chart-categories');
+    if (ctx2 && ctx2.getContext) {
+      if (window.chartCategories) window.chartCategories.destroy();
+      window.chartCategories = new Chart(ctx2.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(categories),
+          datasets: [{
+            data: Object.values(categories),
+            backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'bottom' } }
+        }
+      });
+    }
+
+    // Graphique biens (statuts)
+    const biensStats = {
+      publie: tousBiens.filter(b => b.statut === 'publie').length,
+      loue: tousBiens.filter(b => b.statut === 'loue').length,
+      reserve: tousBiens.filter(b => b.statut === 'reserve').length,
+      en_attente: tousBiens.filter(b => b.statut === 'en_attente').length,
+      refuse: tousBiens.filter(b => b.statut === 'refuse').length
+    };
+
+    const ctx3 = document.getElementById('chart-biens');
+    if (ctx3 && ctx3.getContext) {
+      if (window.chartBiens) window.chartBiens.destroy();
+      window.chartBiens = new Chart(ctx3.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: ['✅ Publiés', '🔑 Loués', '📅 Réservés', '⏳ En attente', '❌ Refusés'],
+          datasets: [{
+            label: 'Nombre de biens',
+            data: [biensStats.publie, biensStats.loue, biensStats.reserve, biensStats.en_attente, biensStats.refuse],
+            backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'],
+            borderRadius: 8
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: { x: { beginAtZero: true } }
+        }
+      });
+    }
+  };
   window.ouvrirAjouterTransaction = () => {
     document.getElementById('modal-titre').textContent = '➕ Ajouter une transaction';
     document.getElementById('modal-overlay').style.display = 'flex';
@@ -3175,6 +3633,10 @@
       set('cfg-youtube', c.youtube);
       set('cfg-hero-titre', c.heroTitre);
       set('cfg-hero-desc', c.heroDesc);
+      set('cfg-commission', c.commission || '10');
+set('cfg-devise', c.devise || 'FCFA');
+set('cfg-frais-dossier', c.fraisDossier || '');
+set('cfg-avance-defaut', c.avanceDefaut || '1');
     } catch (e) { console.warn('Config:', e.message); }
   };
 
@@ -3185,26 +3647,31 @@
     btn.innerHTML = '<div class="spinner"></div> Sauvegarde...';
 
     try {
-      const get = (id) => document.getElementById(id)?.value?.trim() || '';
-      await setDoc(doc(db, 'agence', 'config'), {
-        logo:           get('cfg-logo'),
-        nom:            get('cfg-nom'),
-        couleurPrimaire: get('cfg-couleur'),
-        description:    get('cfg-description'),
-        telephone:      get('cfg-telephone'),
-        whatsapp:       get('cfg-whatsapp'),
-        email:          get('cfg-email'),
-        sms:            get('cfg-sms'),
-        adresse:        get('cfg-adresse'),
-        facebook:       get('cfg-facebook'),
-        instagram:      get('cfg-instagram'),
-        tiktok:         get('cfg-tiktok'),
-        youtube:        get('cfg-youtube'),
-        heroTitre:      get('cfg-hero-titre'),
-        heroDesc:       get('cfg-hero-desc'),
-        updatedAt:      serverTimestamp()
-      });
+     const get = (id) => document.getElementById(id)?.value?.trim() || '';
+const getNum = (id) => parseFloat(document.getElementById(id)?.value) || 0;
 
+await setDoc(doc(db, 'agence', 'config'), {
+  logo:           get('cfg-logo'),
+  nom:            get('cfg-nom'),
+  couleurPrimaire: get('cfg-couleur'),
+  description:    get('cfg-description'),
+  telephone:      get('cfg-telephone'),
+  whatsapp:       get('cfg-whatsapp'),
+  email:          get('cfg-email'),
+  sms:            get('cfg-sms'),
+  adresse:        get('cfg-adresse'),
+  facebook:       get('cfg-facebook'),
+  instagram:      get('cfg-instagram'),
+  tiktok:         get('cfg-tiktok'),
+  youtube:        get('cfg-youtube'),
+  heroTitre:      get('cfg-hero-titre'),
+  heroDesc:       get('cfg-hero-desc'),
+  commission:     getNum('cfg-commission'),
+  devise:         get('cfg-devise') || 'FCFA',
+  fraisDossier:   getNum('cfg-frais-dossier'),
+  avanceDefaut:   getNum('cfg-avance-defaut') || 1,
+  updatedAt:      serverTimestamp()
+});
       // Appliquer couleur immédiatement
       const couleur = get('cfg-couleur');
       if (couleur) document.documentElement.style.setProperty('--primary', couleur);
@@ -3329,6 +3796,472 @@
       ).join('') +
       '</tbody></table>'
     );
+  };
+  // ============================================
+  // FINALISER UNE LOCATION (LOUER)
+  // ============================================
+  window.finaliserLocation = async (reservationId) => {
+    if (!confirm('Finaliser cette location ? Le bien sera marqué comme LOUÉ.')) return;
+
+    try {
+      // Récupérer la réservation
+      const resSnap = await getDoc(doc(db, 'reservations', reservationId));
+      if (!resSnap.exists()) return;
+      const r = { id: resSnap.id, ...resSnap.data() };
+
+      const commission = agenceConfig.commission || 10;
+      const devise     = agenceConfig.devise || 'FCFA';
+      const commissionMontant = (r.montantLoyer || 0) * commission / 100;
+      const netProprietaire   = (r.montantLoyer || 0) - commissionMontant;
+
+      // Mettre à jour la réservation
+      await updateDoc(doc(db, 'reservations', reservationId), {
+        statut:          'loue',
+        dateLocation:    serverTimestamp(),
+        commission:      commissionMontant,
+        netProprietaire: netProprietaire
+      });
+
+      // Mettre à jour le bien
+      if (r.bienId) {
+        await updateDoc(doc(db, 'biens', r.bienId), {
+          statut:        'loue',
+          locataireNom:  r.clientNom || '',
+          locataireTel:  r.clientTel || '',
+          dateLocation:  serverTimestamp()
+        });
+      }
+
+      // Enregistrer le revenu dans finances
+      await addDoc(collection(db, 'finances'), {
+        type:            'revenu',
+        categorie:       'loyer',
+        montant:         r.montantLoyer || 0,
+        commission:      commissionMontant,
+        netProprietaire: netProprietaire,
+        description:     'Location - ' + (r.bienTitre || '') + ' - ' + (r.clientNom || ''),
+        bienId:          r.bienId || '',
+        bienTitre:       r.bienTitre || '',
+        clientNom:       r.clientNom || '',
+        proprietaireId:  r.proprietaireId || '',
+        date:            new Date().toISOString().split('T')[0],
+        devise:          devise,
+        createdAt:       serverTimestamp()
+      });
+
+      // Enregistrer caution
+      if (r.montantCaution > 0) {
+        await addDoc(collection(db, 'finances'), {
+          type:        'revenu',
+          categorie:   'caution',
+          montant:     r.montantCaution || 0,
+          description: 'Caution - ' + (r.bienTitre || '') + ' - ' + (r.clientNom || ''),
+          bienId:      r.bienId || '',
+          clientNom:   r.clientNom || '',
+          date:        new Date().toISOString().split('T')[0],
+          devise:      devise,
+          createdAt:   serverTimestamp()
+        });
+      }
+
+      // Enregistrer avance
+      if (r.montantAvance > 0) {
+        await addDoc(collection(db, 'finances'), {
+          type:        'revenu',
+          categorie:   'avance',
+          montant:     r.montantAvance || 0,
+          description: 'Avance - ' + (r.bienTitre || '') + ' - ' + (r.clientNom || ''),
+          bienId:      r.bienId || '',
+          clientNom:   r.clientNom || '',
+          date:        new Date().toISOString().split('T')[0],
+          devise:      devise,
+          createdAt:   serverTimestamp()
+        });
+      }
+
+      showToast('Location finalisée ! Bien marqué comme LOUÉ 🔑', 'success');
+
+      // Générer reçu automatiquement
+      genererRecuLocation(r, commissionMontant, netProprietaire, devise);
+
+      // Recharger
+      await chargerDashboard();
+      chargerReservations();
+      chargerFinances();
+
+    } catch (e) {
+      showToast('Erreur : ' + e.message, 'error');
+    }
+  };
+
+  // ============================================
+  // LIBÉRER UN BIEN
+  // ============================================
+  window.libererBien = async (reservationId) => {
+    if (!confirm('Libérer ce bien ? Il sera à nouveau disponible.')) return;
+
+    try {
+      const resSnap = await getDoc(doc(db, 'reservations', reservationId));
+      if (!resSnap.exists()) return;
+      const r = resSnap.data();
+
+      // Mettre à jour réservation
+      await updateDoc(doc(db, 'reservations', reservationId), {
+        statut:       'termine',
+        dateLiberation: serverTimestamp()
+      });
+
+      // Remettre le bien disponible
+      if (r.bienId) {
+        await updateDoc(doc(db, 'biens', r.bienId), {
+          statut:       'publie',
+          locataireNom: '',
+          locataireTel: ''
+        });
+      }
+
+      showToast('Bien libéré et remis disponible ✅', 'success');
+      await chargerDashboard();
+      chargerReservations();
+
+    } catch (e) {
+      showToast('Erreur : ' + e.message, 'error');
+    }
+  };
+
+  // ============================================
+  // GÉNÉRER REÇU RÉSERVATION
+  // ============================================
+  window.genererRecu = async (reservationId) => {
+    const r = toutesReservations.find(x => x.id === reservationId);
+    if (!r) return;
+    const devise = agenceConfig.devise || 'FCFA';
+    genererRecuReservation(r, devise);
+  };
+
+  const genererRecuReservation = (r, devise) => {
+    const agenceNom = agenceConfig.nom || 'Immo Elite';
+    const agenceTel = agenceConfig.telephone || '';
+    const agenceEmail = agenceConfig.email || '';
+    const agenceAdresse = agenceConfig.adresse || '';
+    const numRecu = 'RES-' + Date.now().toString().slice(-6);
+    const dateAujourd = new Date().toLocaleDateString('fr-FR');
+
+    const w = window.open('', '_blank');
+    w.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8"/>
+        <title>Reçu Réservation - ${agenceNom}</title>
+        <style>
+          * { margin:0; padding:0; box-sizing:border-box; }
+          body { font-family:Arial,sans-serif; padding:40px; color:#1e293b; }
+          .header { display:flex; justify-content:space-between; margin-bottom:30px; padding-bottom:20px; border-bottom:3px solid #2563eb; }
+          .agence-nom { font-size:24px; font-weight:800; color:#2563eb; }
+          .agence-info { font-size:12px; color:#64748b; margin-top:4px; }
+          .recu-titre { text-align:center; margin:20px 0; }
+          .recu-titre h2 { font-size:20px; font-weight:800; color:#1e293b; }
+          .recu-num { font-size:13px; color:#64748b; margin-top:4px; }
+          .section { margin:20px 0; }
+          .section-title { font-size:13px; font-weight:700; color:#2563eb; text-transform:uppercase; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid #e2e8f0; }
+          .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+          .info-item { background:#f8fafc; padding:12px; border-radius:8px; }
+          .info-label { font-size:11px; color:#64748b; margin-bottom:3px; }
+          .info-value { font-size:14px; font-weight:600; }
+          .montant-table { width:100%; border-collapse:collapse; margin-top:10px; }
+          .montant-table th { background:#f1f5f9; padding:10px; text-align:left; font-size:12px; border:1px solid #e2e8f0; }
+          .montant-table td { padding:10px; border:1px solid #e2e8f0; font-size:13px; }
+          .total-row td { font-weight:800; font-size:15px; background:#eff6ff; color:#2563eb; }
+          .footer { margin-top:40px; text-align:center; font-size:12px; color:#94a3b8; border-top:1px solid #e2e8f0; padding-top:20px; }
+          .stamp { text-align:right; margin-top:30px; }
+          .stamp-box { display:inline-block; border:2px dashed #2563eb; padding:20px 40px; border-radius:8px; color:#2563eb; font-weight:700; }
+          @media print { body { padding:20px; } }
+        </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>      
+</head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="agence-nom">${agenceNom}</div>
+            <div class="agence-info">📞 ${agenceTel}</div>
+            <div class="agence-info">✉️ ${agenceEmail}</div>
+            <div class="agence-info">📍 ${agenceAdresse}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:12px;color:#64748b;">Date : ${dateAujourd}</div>
+            <div style="font-size:12px;color:#64748b;margin-top:4px;">N° : ${numRecu}</div>
+            <div style="margin-top:8px;background:#fef9c3;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;color:#854d0e;">⏳ RÉSERVATION</div>
+          </div>
+        </div>
+
+        <div class="recu-titre">
+          <h2>🧾 REÇU DE RÉSERVATION</h2>
+          <div class="recu-num">Référence : ${numRecu}</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">👤 Informations Client</div>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Nom complet</div>
+              <div class="info-value">${r.clientNom || '—'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Téléphone</div>
+              <div class="info-value">${r.clientTel || '—'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Email</div>
+              <div class="info-value">${r.clientEmail || '—'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Profession</div>
+              <div class="info-value">${r.clientProfession || '—'}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">🏠 Informations du Bien</div>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Bien</div>
+              <div class="info-value">${r.bienTitre || '—'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Adresse</div>
+              <div class="info-value">${r.bienAdresse || '—'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Date d'entrée souhaitée</div>
+              <div class="info-value">${r.dateDebut || '—'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Durée</div>
+              <div class="info-value">${r.duree || '—'} mois</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">💰 Détails Financiers</div>
+          <table class="montant-table">
+            <thead>
+              <tr>
+                <th>Désignation</th>
+                <th>Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>💰 Loyer mensuel</td>
+                <td>${new Intl.NumberFormat('fr-FR').format(r.montantLoyer || 0)} ${devise}</td>
+              </tr>
+              ${r.montantCaution ? `<tr>
+                <td>💵 Caution</td>
+                <td>${new Intl.NumberFormat('fr-FR').format(r.montantCaution)} ${devise}</td>
+              </tr>` : ''}
+              ${r.montantAvance ? `<tr>
+                <td>💵 Avance (${r.duree} mois)</td>
+                <td>${new Intl.NumberFormat('fr-FR').format(r.montantAvance)} ${devise}</td>
+              </tr>` : ''}
+              <tr class="total-row">
+                <td>💳 TOTAL À PAYER À L'ENTRÉE</td>
+                <td>${new Intl.NumberFormat('fr-FR').format(r.totalEntree || 0)} ${devise}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="stamp">
+          <div class="stamp-box">
+            ✅ Réservation enregistrée
+          </div>
+        </div>
+
+        <div class="footer">
+          <p>Ce document est un reçu de réservation. Il ne constitue pas un contrat de location.</p>
+          <p style="margin-top:6px;">${agenceNom} — ${agenceTel} — ${agenceEmail}</p>
+        </div>
+
+        <script>window.print();<\/script>
+      </body>
+      </html>
+    `);
+    w.document.close();
+  };
+
+  // ============================================
+  // GÉNÉRER REÇU LOCATION
+  // ============================================
+  const genererRecuLocation = (r, commission, netProprietaire, devise) => {
+    const agenceNom     = agenceConfig.nom || 'Immo Elite';
+    const agenceTel     = agenceConfig.telephone || '';
+    const agenceEmail   = agenceConfig.email || '';
+    const agenceAdresse = agenceConfig.adresse || '';
+    const numRecu       = 'LOC-' + Date.now().toString().slice(-6);
+    const dateAujourd   = new Date().toLocaleDateString('fr-FR');
+
+    const w = window.open('', '_blank');
+    w.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8"/>
+        <title>Reçu Location - ${agenceNom}</title>
+        <style>
+          * { margin:0; padding:0; box-sizing:border-box; }
+          body { font-family:Arial,sans-serif; padding:40px; color:#1e293b; }
+          .header { display:flex; justify-content:space-between; margin-bottom:30px; padding-bottom:20px; border-bottom:3px solid #10b981; }
+          .agence-nom { font-size:24px; font-weight:800; color:#10b981; }
+          .agence-info { font-size:12px; color:#64748b; margin-top:4px; }
+          .recu-titre { text-align:center; margin:20px 0; }
+          .recu-titre h2 { font-size:20px; font-weight:800; }
+          .recu-num { font-size:13px; color:#64748b; margin-top:4px; }
+          .section { margin:20px 0; }
+          .section-title { font-size:13px; font-weight:700; color:#10b981; text-transform:uppercase; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid #e2e8f0; }
+          .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+          .info-item { background:#f8fafc; padding:12px; border-radius:8px; }
+          .info-label { font-size:11px; color:#64748b; margin-bottom:3px; }
+          .info-value { font-size:14px; font-weight:600; }
+          .montant-table { width:100%; border-collapse:collapse; margin-top:10px; }
+          .montant-table th { background:#f1f5f9; padding:10px; text-align:left; font-size:12px; border:1px solid #e2e8f0; }
+          .montant-table td { padding:10px; border:1px solid #e2e8f0; font-size:13px; }
+          .total-row td { font-weight:800; font-size:15px; background:#f0fdf4; color:#10b981; }
+          .commission-row td { color:#ef4444; }
+          .net-row td { color:#2563eb; font-weight:700; }
+          .footer { margin-top:40px; text-align:center; font-size:12px; color:#94a3b8; border-top:1px solid #e2e8f0; padding-top:20px; }
+          .stamp { text-align:right; margin-top:30px; }
+          .stamp-box { display:inline-block; border:2px solid #10b981; padding:20px 40px; border-radius:8px; color:#10b981; font-weight:700; }
+          @media print { body { padding:20px; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="agence-nom">${agenceNom}</div>
+            <div class="agence-info">📞 ${agenceTel}</div>
+            <div class="agence-info">✉️ ${agenceEmail}</div>
+            <div class="agence-info">📍 ${agenceAdresse}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:12px;color:#64748b;">Date : ${dateAujourd}</div>
+            <div style="font-size:12px;color:#64748b;margin-top:4px;">N° : ${numRecu}</div>
+            <div style="margin-top:8px;background:#dcfce7;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;color:#166534;">🔑 LOCATION CONFIRMÉE</div>
+          </div>
+        </div>
+
+        <div class="recu-titre">
+          <h2>🧾 REÇU DE LOCATION</h2>
+          <div class="recu-num">Référence : ${numRecu}</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">👤 Locataire</div>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Nom complet</div>
+              <div class="info-value">${r.clientNom || '—'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Téléphone</div>
+              <div class="info-value">${r.clientTel || '—'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Email</div>
+              <div class="info-value">${r.clientEmail || '—'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Date d'entrée</div>
+              <div class="info-value">${r.dateDebut || dateAujourd}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">🏠 Bien Loué</div>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Bien</div>
+              <div class="info-value">${r.bienTitre || '—'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Adresse</div>
+              <div class="info-value">${r.bienAdresse || '—'}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Durée du contrat</div>
+              <div class="info-value">${r.duree || '—'} mois</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Loyer mensuel</div>
+              <div class="info-value" style="color:#2563eb;">
+                ${new Intl.NumberFormat('fr-FR').format(r.montantLoyer || 0)} ${devise}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">💰 Récapitulatif Financier</div>
+          <table class="montant-table">
+            <thead>
+              <tr>
+                <th>Désignation</th>
+                <th>Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>💰 Loyer mensuel</td>
+                <td>${new Intl.NumberFormat('fr-FR').format(r.montantLoyer || 0)} ${devise}</td>
+              </tr>
+              ${r.montantCaution ? `<tr>
+                <td>💵 Caution versée</td>
+                <td>${new Intl.NumberFormat('fr-FR').format(r.montantCaution)} ${devise}</td>
+              </tr>` : ''}
+              ${r.montantAvance ? `<tr>
+                <td>💵 Avance versée</td>
+                <td>${new Intl.NumberFormat('fr-FR').format(r.montantAvance)} ${devise}</td>
+              </tr>` : ''}
+              <tr class="total-row">
+                <td>💳 TOTAL VERSÉ</td>
+                <td>${new Intl.NumberFormat('fr-FR').format(r.totalEntree || 0)} ${devise}</td>
+              </tr>
+              <tr class="commission-row">
+                <td>📊 Commission agence (${agenceConfig.commission || 10}%)</td>
+                <td>- ${new Intl.NumberFormat('fr-FR').format(commission)} ${devise}</td>
+              </tr>
+              <tr class="net-row">
+                <td>💵 Net propriétaire</td>
+                <td>${new Intl.NumberFormat('fr-FR').format(netProprietaire)} ${devise}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="stamp">
+          <div class="stamp-box">
+            🔑 Location Confirmée<br/>
+            <span style="font-size:12px;font-weight:400;">
+              ${dateAujourd}
+            </span>
+          </div>
+        </div>
+
+        <div class="footer">
+          <p>Ce document certifie la location du bien mentionné ci-dessus.</p>
+          <p style="margin-top:6px;">
+            ${agenceNom} — ${agenceTel} — ${agenceEmail}
+          </p>
+        </div>
+
+        <script>window.print();<\/script>
+      </body>
+      </html>
+    `);
+    w.document.close();
   };
 
   window.imprimerProprietaires = () => {
