@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Connexion Agence - Immo Elite</title>
+  <style>
+
+    /* ========================================
+       VARIABLES & RESET
+    ======================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary:       #2563eb;
+      --primary-dark:  #1d4ed8;
+      --primary-light: #dbeafe;
+      --success:       #10b981;
+      --danger:        #ef4444;
+      --warning:       #f59e0b;
+      --bg:            #f8fafc;
+      --bg-card:       #ffffff;
+      --text:          #1e293b;
+      --text-light:    #64748b;
+      --border:        #e2e8f0;
+      --shadow:        0 4px 20px rgba(0,0,0,0.08);
+      --radius:        12px;
+      --radius-lg:     20px;
+    }
+
+    .dark {
+      --bg:         #0f172a;
+      --bg-card:    #1e293b;
+      --text:       #f1f5f9;
+      --text-light: #94a3b8;
+      --border:     #334155;
+      --shadow:     0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s ease, color 0.3s ease;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ========================================
+       NAVBAR
+    ======================================== */
+    .navbar {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow);
+    }
+
+    .navbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .navbar-logo img {
+      height: 45px;
+      width: 45px;
+      border-radius: 10px;
+      object-fit: cover;
+    }
+
+    .navbar-logo span {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-back {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+
+    .btn-back:hover {
+      background: var(--primary-light);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .theme-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+
+    .theme-btn:hover { background: var(--border); }
+
+    /* ========================================
+       MAIN
+    ======================================== */
+    .main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+      background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+    }
+
+    .dark .main {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+    }
+
+    .login-wrapper {
+      width: 100%;
+      max-width: 460px;
+    }
+
+    /* ========================================
+       LOGIN CARD
+    ======================================== */
+    .login-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 44px;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .login-logo {
+      width: 84px;
+      height: 84px;
+      border-radius: 20px;
+      object-fit: cover;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 25px rgba(37,99,235,0.25);
+      border: 3px solid var(--primary-light);
+    }
+
+    .login-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      border: 1px solid #bfdbfe;
+    }
+
+    .login-header h1 {
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .login-header p {
+      font-size: 14px;
+      color: var(--text-light);
+    }
+
+    /* ========================================
+       ROLE SELECTOR
+    ======================================== */
+    .role-selector {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .role-btn {
+      padding: 12px 8px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+
+    .role-btn:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .role-btn.active {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: white;
+    }
+
+    .role-btn .role-icon {
+      font-size: 22px;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .role-btn .role-label {
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    /* ========================================
+       FORMULAIRE
+    ======================================== */
+    .form-group { margin-bottom: 20px; }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .input-wrap { position: relative; }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      pointer-events: none;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 13px 16px 13px 44px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--bg);
+      transition: all 0.2s;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+      background: var(--bg-card);
+      box-shadow: 0 0 0 4px rgba(37,99,235,0.08);
+    }
+
+    .toggle-pwd {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--text-light);
+      padding: 4px;
+    }
+
+    .toggle-pwd:hover { color: var(--text); }
+
+    /* ========================================
+       OPTIONS
+    ======================================== */
+    .form-options {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .remember-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .remember-wrap input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    .remember-wrap label {
+      font-size: 13px;
+      color: var(--text-light);
+      cursor: pointer;
+    }
+
+    .forgot-link {
+      font-size: 13px;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .forgot-link:hover { text-decoration: underline; }
+
+    /* ========================================
+       BOUTON LOGIN
+    ======================================== */
+    .btn-login {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 15px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .btn-login:hover:not(:disabled) {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(37,99,235,0.35);
+    }
+
+    .btn-login:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* ========================================
+       DIVIDER
+    ======================================== */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      color: var(--text-light);
+      font-size: 13px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ========================================
+       FOOTER LOGIN
+    ======================================== */
+    .login-footer {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-light);
+    }
+
+    .login-footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .login-footer a:hover { text-decoration: underline; }
+    .login-footer p { margin-bottom: 8px; }
+
+    /* ========================================
+       ALERT BOX
+    ======================================== */
+    .alert-box {
+      padding: 14px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      display: none;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.5;
+    }
+
+    .alert-box.show { display: flex; }
+
+    .alert-error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+    }
+
+    .dark .alert-error {
+      background: #450a0a;
+      border-color: #7f1d1d;
+      color: #fca5a5;
+    }
+
+    /* ========================================
+       SECURITE BOX
+    ======================================== */
+    .securite-box {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 12px;
+      color: #166534;
+      margin-top: 20px;
+      line-height: 1.6;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .dark .securite-box {
+      background: #052e16;
+      border-color: #14532d;
+      color: #86efac;
+    }
+
+    /* ========================================
+       SPINNER & LOADER
+    ======================================== */
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* ========================================
+       TOAST
+    ======================================== */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast-item {
+      padding: 14px 20px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 500;
+      font-size: 14px;
+      color: white;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      animation: slideIn 0.3s ease;
+      max-width: 340px;
+    }
+
+    /* ========================================
+       FOOTER PAGE
+    ======================================== */
+    .page-footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 13px;
+      color: var(--text-light);
+      border-top: 1px solid var(--border);
+      background: var(--bg-card);
+    }
+
+    /* ========================================
+       ANIMATIONS
+    ======================================== */
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(100px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .fade-in { animation: fadeIn 0.4s ease; }
+
+    /* ========================================
+       RESPONSIVE
+    ======================================== */
+    @media (max-width: 480px) {
+      .login-card { padding: 24px 20px; }
+      .main { padding: 20px 16px; }
+      .role-selector { grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+  </style>
+</head>
+
+<body>
+
+<!-- ===== TOAST ===== -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar">
+  <a href="../index.html" class="navbar-logo">
+    <img id="nav-logo" src="" alt="Logo"/>
+    <span id="nav-nom">Immo Elite</span>
+  </a>
+  <div class="navbar-right">
+    <a href="../index.html" class="btn-back">← Accueil</a>
+    <button class="theme-btn" onclick="toggleTheme()">
+      <span class="theme-icon">🌙</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ===== MAIN ===== -->
+<main class="main">
+  <div class="login-wrapper fade-in">
+    <div class="login-card">
+
+      <!-- HEADER -->
+      <div class="login-header">
+        <img id="login-logo" src="" alt="Logo" class="login-logo"/>
+        <div class="login-badge">🏢 Espace Agence</div>
+        <h1>Connexion</h1>
+        <p>Accédez au panneau d'administration</p>
+      </div>
+
+      <!-- SELECTEUR DE ROLE -->
+      <div style="margin-bottom:12px;">
+        <label style="font-size:13px;font-weight:600;color:var(--text-light);
+               display:block;margin-bottom:10px;">
+          Votre rôle :
+        </label>
+        <div class="role-selector">
+          <button class="role-btn active" onclick="selectRole(this,'pdg')" type="button">
+            <span class="role-icon">👑</span>
+            <span class="role-label">PDG</span>
+          </button>
+          <button class="role-btn" onclick="selectRole(this,'gerant')" type="button">
+            <span class="role-icon">🧑‍💼</span>
+            <span class="role-label">Gérant</span>
+          </button>
+          <button class="role-btn" onclick="selectRole(this,'secretaire')" type="button">
+            <span class="role-icon">📋</span>
+            <span class="role-label">Secrétaire</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ALERT -->
+      <div class="alert-box alert-error" id="alert-error">
+        <span>❌</span>
+        <span id="alert-error-msg">Email ou mot de passe incorrect.</span>
+      </div>
+
+      <!-- FORMULAIRE -->
+      <form id="login-form" onsubmit="seConnecter(event)">
+
+        <div class="form-group">
+          <label class="form-label">Adresse email</label>
+          <div class="input-wrap">
+            <span class="input-icon">✉️</span>
+            <input type="email" id="login-email" class="form-input"
+              placeholder="admin@agence.com" required autocomplete="email"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Mot de passe</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="login-pwd" class="form-input"
+              placeholder="Votre mot de passe" required autocomplete="current-password"/>
+            <button type="button" class="toggle-pwd" onclick="togglePwd()">👁️</button>
+          </div>
+        </div>
+
+        <div class="form-options">
+          <div class="remember-wrap">
+            <input type="checkbox" id="remember-me"/>
+            <label for="remember-me">Se souvenir de moi</label>
+          </div>
+          <a href="#" class="forgot-link" onclick="motDePasseOublie()">
+            Mot de passe oublié ?
+          </a>
+        </div>
+
+        <button type="submit" class="btn-login" id="btn-login">
+          🏢 Se connecter
+        </button>
+
+      </form>
+
+      <div class="divider">ou</div>
+
+      <div class="login-footer">
+        <p>Vous êtes propriétaire ?
+          <a href="../proprietaire/login.html">Espace propriétaire →</a>
+        </p>
+        <p>Pas encore de compte ?
+          <a href="../inscription-proprietaire.html">Faire une demande</a>
+        </p>
+      </div>
+
+      <div class="securite-box">
+        🔒 Connexion sécurisée. Vos données sont protégées.
+        Seuls les membres autorisés de l'agence peuvent accéder à cet espace.
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="page-footer">
+  <p>© 2025 <span id="footer-nom">Immo Elite</span>. Tous droits réservés.</p>
+</footer>
+<script type="module">
+
+  // ============================================
+  // IMPORTS FIREBASE
+  // ============================================
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import {
+    getAuth, signInWithEmailAndPassword,
+    onAuthStateChanged, sendPasswordResetEmail
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  // ============================================
+  // CONFIG FIREBASE
+  // ============================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyB35Vg-4Hxg224CJRmtfzxzsmzWATMJS4U",
+    authDomain: "immo-elite.firebaseapp.com",
+    databaseURL: "https://immo-elite-default-rtdb.firebaseio.com",
+    projectId: "immo-elite",
+    storageBucket: "immo-elite.firebasestorage.app",
+    messagingSenderId: "1069740883558",
+    appId: "1:1069740883558:web:a28a4965240f188b6f37a7"
+  };
+
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+
+  // ============================================
+  // VARIABLES
+  // ============================================
+  let roleSelectionne = 'pdg';
+
+  // ============================================
+  // UTILITAIRES
+  // ============================================
+  const showToast = (msg, type = 'success') => {
+    const colors = { success:'#10b981', error:'#ef4444', warning:'#f59e0b', info:'#3b82f6' };
+    const icons  = { success:'✅', error:'❌', warning:'⚠️', info:'ℹ️' };
+    const el = document.createElement('div');
+    el.className = 'toast-item';
+    el.style.background = colors[type];
+    el.innerHTML = '<span>' + icons[type] + '</span><span>' + msg + '</span>';
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => el.remove(), 4500);
+  };
+
+  const showError = (msg) => {
+    const box = document.getElementById('alert-error');
+    document.getElementById('alert-error-msg').textContent = msg;
+    box.classList.add('show');
+    setTimeout(() => box.classList.remove('show'), 6000);
+  };
+
+  // ============================================
+  // THEME
+  // ============================================
+  window.toggleTheme = () => {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    document.querySelectorAll('.theme-icon').forEach(el => {
+      el.textContent = isDark ? '☀️' : '🌙';
+    });
+  };
+
+  if (localStorage.getItem('theme') === 'dark') {
+    document.documentElement.classList.add('dark');
+    document.querySelectorAll('.theme-icon').forEach(el => { el.textContent = '☀️'; });
+  }
+
+  // ============================================
+  // TOGGLE PASSWORD
+  // ============================================
+  window.togglePwd = () => {
+    const input = document.getElementById('login-pwd');
+    input.type = input.type === 'password' ? 'text' : 'password';
+  };
+
+  // ============================================
+  // SELECTION ROLE
+  // ============================================
+  window.selectRole = (el, role) => {
+    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    roleSelectionne = role;
+  };
+
+  // ============================================
+  // CHARGER CONFIG AGENCE
+  // ============================================
+  const chargerConfig = async () => {
+    try {
+      const snap = await getDoc(doc(db, 'agence', 'config'));
+      if (!snap.exists()) return;
+      const c = snap.data();
+      if (c.logo) {
+        document.getElementById('nav-logo').src   = c.logo;
+        document.getElementById('login-logo').src = c.logo;
+      }
+      if (c.nom) {
+        document.getElementById('nav-nom').textContent    = c.nom;
+        document.getElementById('footer-nom').textContent = c.nom;
+      }
+      if (c.couleurPrimaire) {
+        document.documentElement.style.setProperty('--primary', c.couleurPrimaire);
+      }
+    } catch (e) {
+      console.warn('Config:', e.message);
+    }
+  };
+
+  // ============================================
+  // VERIFIER SI DEJA CONNECTE
+  // ============================================
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      try {
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        if (snap.exists() && snap.data().actif) {
+          window.location.href = 'dashboard.html';
+        }
+      } catch (e) {
+        console.warn(e.message);
+      }
+    }
+  });
+
+  // ============================================
+  // SE CONNECTER
+  // ============================================
+  window.seConnecter = async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById('login-email').value.trim();
+    const pwd   = document.getElementById('login-pwd').value;
+
+    if (!email || !pwd) {
+      showError('Veuillez remplir tous les champs.');
+      return;
+    }
+
+    const btn = document.getElementById('btn-login');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Connexion...';
+
+    try {
+      // Connexion Firebase Auth
+      const result = await signInWithEmailAndPassword(auth, email, pwd);
+      const user   = result.user;
+
+      // Vérifier dans Firestore collection 'users' (employés agence)
+      const snap = await getDoc(doc(db, 'users', user.uid));
+
+      if (!snap.exists()) {
+        await auth.signOut();
+        showError('Ce compte n\'est pas un compte agence. Vérifiez vos identifiants.');
+        btn.disabled = false;
+        btn.innerHTML = '🏢 Se connecter';
+        return;
+      }
+
+      const userData = snap.data();
+
+      // Vérifier si compte actif
+      if (!userData.actif) {
+        await auth.signOut();
+        showError('Votre compte est désactivé. Contactez l\'administrateur.');
+        btn.disabled = false;
+        btn.innerHTML = '🏢 Se connecter';
+        return;
+      }
+
+      // Vérifier le rôle sélectionné
+      if (userData.role !== roleSelectionne) {
+        await auth.signOut();
+        showError(
+          'Rôle incorrect. Votre rôle est : ' + userData.role +
+          '. Veuillez sélectionner le bon rôle.'
+        );
+        btn.disabled = false;
+        btn.innerHTML = '🏢 Se connecter';
+        return;
+      }
+
+      // Sauvegarder le rôle en session
+      sessionStorage.setItem('userRole', userData.role);
+      sessionStorage.setItem('userNom', userData.nom || '');
+
+      showToast('Connexion réussie ! Redirection...', 'success');
+
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 1200);
+
+    } catch (err) {
+      console.error(err);
+      let msg = 'Erreur de connexion.';
+      if (err.code === 'auth/user-not-found')    msg = 'Aucun compte avec cet email.';
+      if (err.code === 'auth/wrong-password')     msg = 'Mot de passe incorrect.';
+      if (err.code === 'auth/invalid-email')      msg = 'Email invalide.';
+      if (err.code === 'auth/too-many-requests')  msg = 'Trop de tentatives. Réessayez plus tard.';
+      if (err.code === 'auth/invalid-credential') msg = 'Email ou mot de passe incorrect.';
+      showError(msg);
+      btn.disabled = false;
+      btn.innerHTML = '🏢 Se connecter';
+    }
+  };
+
+  // ============================================
+  // MOT DE PASSE OUBLIE
+  // ============================================
+  window.motDePasseOublie = async () => {
+    const email = document.getElementById('login-email').value.trim();
+    if (!email) {
+      showToast('Entrez votre email d\'abord', 'warning');
+      document.getElementById('login-email').focus();
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      showToast('Email de réinitialisation envoyé !', 'success');
+    } catch (err) {
+      showToast('Erreur : ' + err.message, 'error');
+    }
+  };
+
+  // ============================================
+  // INITIALISATION
+  // ============================================
+  chargerConfig();
+
+</script>
+</body>
+</html>

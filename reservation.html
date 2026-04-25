@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Réservation - Immo Elite</title>
+  <style>
+
+    /* ========================================
+       VARIABLES & RESET
+    ======================================== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary:       #2563eb;
+      --primary-dark:  #1d4ed8;
+      --primary-light: #dbeafe;
+      --success:       #10b981;
+      --danger:        #ef4444;
+      --warning:       #f59e0b;
+      --bg:            #f8fafc;
+      --bg-card:       #ffffff;
+      --text:          #1e293b;
+      --text-light:    #64748b;
+      --border:        #e2e8f0;
+      --shadow:        0 4px 20px rgba(0,0,0,0.08);
+      --radius:        12px;
+      --radius-lg:     20px;
+    }
+
+    .dark {
+      --bg:         #0f172a;
+      --bg-card:    #1e293b;
+      --text:       #f1f5f9;
+      --text-light: #94a3b8;
+      --border:     #334155;
+      --shadow:     0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s ease, color 0.3s ease;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ========================================
+       NAVBAR
+    ======================================== */
+    .navbar {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow);
+    }
+
+    .navbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .navbar-logo img {
+      height: 45px;
+      width: 45px;
+      border-radius: 10px;
+      object-fit: cover;
+    }
+
+    .navbar-logo span {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .navbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-back {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+      background: var(--bg-card);
+    }
+
+    .btn-back:hover {
+      background: var(--primary-light);
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .theme-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--text);
+      transition: all 0.2s;
+    }
+
+    .theme-btn:hover { background: var(--border); }
+
+    /* ========================================
+       PAGE HEADER
+    ======================================== */
+    .page-header {
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+      color: white;
+      padding: 50px 24px;
+      text-align: center;
+    }
+
+    .page-header h1 {
+      font-size: clamp(24px, 4vw, 36px);
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+
+    .page-header p {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    /* ========================================
+       MAIN LAYOUT
+    ======================================== */
+    .main-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 30px;
+      align-items: start;
+    }
+
+    /* ========================================
+       CARTE BIEN (colonne droite)
+    ======================================== */
+    .bien-recap {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 90px;
+    }
+
+    .bien-recap-media {
+      height: 200px;
+      overflow: hidden;
+      background: #1e293b;
+      position: relative;
+    }
+
+    .bien-recap-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .bien-recap-media video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .bien-recap-body {
+      padding: 20px;
+    }
+
+    .bien-recap-type {
+      font-size: 11px;
+      color: var(--primary);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .bien-recap-titre {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .bien-recap-adresse {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 16px;
+    }
+
+    .bien-recap-prix-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-top: 1px solid var(--border);
+      padding-top: 16px;
+    }
+
+    .prix-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .prix-row .label {
+      color: var(--text-light);
+    }
+
+    .prix-row .value {
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .prix-row.total .value {
+      color: var(--primary);
+      font-size: 18px;
+    }
+
+    .prix-row.total .label {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 15px;
+    }
+
+    .dispo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #dcfce7;
+      color: #166534;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 12px;
+    }
+
+    .dark .dispo-badge {
+      background: #14532d;
+      color: #86efac;
+    }
+
+    /* ========================================
+       FORMULAIRE (colonne gauche)
+    ======================================== */
+    .form-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .form-card h2 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .form-card p {
+      color: var(--text-light);
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
+
+    .form-section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--primary-light);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .required {
+      color: var(--danger);
+      margin-left: 2px;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--bg);
+      transition: all 0.2s;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+      border-color: var(--primary);
+      background: var(--bg-card);
+      box-shadow: 0 0 0 4px rgba(37,99,235,0.08);
+    }
+
+    .form-input.error,
+    .form-select.error,
+    .form-textarea.error {
+      border-color: var(--danger);
+    }
+
+    .error-msg {
+      color: var(--danger);
+      font-size: 12px;
+      margin-top: 4px;
+      display: none;
+    }
+
+    .error-msg.show { display: block; }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .form-hint {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+
+    /* ========================================
+       TOTAL CALCULÉ
+    ======================================== */
+    .total-box {
+      background: var(--primary-light);
+      border: 2px solid var(--primary);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin: 24px 0;
+    }
+
+    .dark .total-box {
+      background: #1e3a5f;
+      border-color: #3b82f6;
+    }
+
+    .total-box h4 {
+      font-size: 14px;
+      color: var(--primary);
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .total-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+    }
+
+    .total-row .t-label { color: var(--text-light); }
+    .total-row .t-value { font-weight: 600; }
+
+    .total-row.grand-total {
+      border-top: 1px solid var(--primary);
+      padding-top: 10px;
+      margin-top: 4px;
+    }
+
+    .total-row.grand-total .t-label {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 15px;
+    }
+
+    .total-row.grand-total .t-value {
+      color: var(--primary);
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    /* ========================================
+       CONDITIONS
+    ======================================== */
+    .conditions-box {
+      background: #fffbeb;
+      border: 1px solid #fcd34d;
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .dark .conditions-box {
+      background: #1c1a0f;
+      border-color: #854d0e;
+    }
+
+    .conditions-box h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #92400e;
+      margin-bottom: 10px;
+    }
+
+    .dark .conditions-box h4 { color: #fcd34d; }
+
+    .conditions-box ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .conditions-box ul li {
+      font-size: 13px;
+      color: #78350f;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .dark .conditions-box ul li { color: #fde68a; }
+
+    /* ========================================
+       CHECKBOX
+    ======================================== */
+    .checkbox-group {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+      margin-top: 2px;
+      accent-color: var(--primary);
+      flex-shrink: 0;
+    }
+
+    .checkbox-group label {
+      font-size: 13px;
+      color: var(--text-light);
+      cursor: pointer;
+      line-height: 1.5;
+    }
+
+    .checkbox-group label a {
+      color: var(--primary);
+      text-decoration: underline;
+    }
+
+    /* ========================================
+       BOUTON SUBMIT
+    ======================================== */
+    .btn-submit {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 16px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(37,99,235,0.35);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* ========================================
+       SUCCESS STATE
+    ======================================== */
+    .success-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .success-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .success-state h2 {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      color: var(--success);
+    }
+
+    .success-state p {
+      color: var(--text-light);
+      font-size: 15px;
+      margin-bottom: 30px;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.7;
+    }
+
+    .success-btns {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-success-wa {
+      background: #25D366;
+      color: white;
+      padding: 14px 24px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 15px;
+      transition: all 0.2s;
+    }
+
+    .btn-success-wa:hover { transform: translateY(-2px); }
+
+    .btn-retour {
+      background: var(--primary);
+      color: white;
+      padding: 14px 24px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 15px;
+      transition: all 0.2s;
+    }
+
+    .btn-retour:hover { transform: translateY(-2px); }
+
+    /* ========================================
+       LOADER
+    ======================================== */
+    .loader {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* ========================================
+       TOAST
+    ======================================== */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast-item {
+      padding: 14px 20px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 500;
+      font-size: 14px;
+      color: white;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      animation: slideIn 0.3s ease;
+      max-width: 340px;
+    }
+
+    /* ========================================
+       ANIMATIONS
+    ======================================== */
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(100px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .fade-in { animation: fadeIn 0.4s ease; }
+
+    /* ========================================
+       RESPONSIVE
+    ======================================== */
+    @media (max-width: 768px) {
+      .main-container {
+        grid-template-columns: 1fr;
+        padding: 20px 16px 40px;
+      }
+
+      .bien-recap {
+        position: static;
+        order: -1;
+      }
+
+      .form-card {
+        padding: 20px;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .page-header {
+        padding: 40px 20px;
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- ===== TOAST ===== -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar">
+  <a href="../index.html" class="navbar-logo">
+    <img id="nav-logo" src="" alt="Logo"/>
+    <span id="nav-nom">Immo Elite</span>
+  </a>
+  <div class="navbar-right">
+    <a href="../index.html" class="btn-back">← Retour</a>
+    <button class="theme-btn" onclick="toggleTheme()">
+      <span class="theme-icon">🌙</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ===== PAGE HEADER ===== -->
+<div class="page-header">
+  <h1>✅ Réserver un bien</h1>
+  <p>Remplissez le formulaire ci-dessous pour envoyer votre demande de réservation</p>
+</div>
+
+<!-- ===== MAIN CONTAINER ===== -->
+<div class="main-container" id="main-container">
+
+  <!-- CHARGEMENT INITIAL -->
+  <div style="grid-column:1/-1;text-align:center;padding:80px 20px;">
+    <div class="loader" style="margin:0 auto 16px;"></div>
+    <p style="color:var(--text-light);">Chargement du bien...</p>
+  </div>
+
+</div>
+
+<!-- ===== FIREBASE + LOGIQUE ===== -->
+<script type="module">
+
+  // ============================================
+  // IMPORTS FIREBASE
+  // ============================================
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import {
+    getFirestore, doc, getDoc, addDoc,
+    collection, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  // ============================================
+  // CONFIG FIREBASE
+  // ============================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyB35Vg-4Hxg224CJRmtfzxzsmzWATMJS4U",
+    authDomain: "immo-elite.firebaseapp.com",
+    databaseURL: "https://immo-elite-default-rtdb.firebaseio.com",
+    projectId: "immo-elite",
+    storageBucket: "immo-elite.firebasestorage.app",
+    messagingSenderId: "1069740883558",
+    appId: "1:1069740883558:web:a28a4965240f188b6f37a7"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ============================================
+  // VARIABLES GLOBALES
+  // ============================================
+  let bienData = {};
+  let agenceConfig = {};
+  let bienId = '';
+
+  // ============================================
+  // UTILITAIRES
+  // ============================================
+  const formatPrix = (n) => new Intl.NumberFormat('fr-FR').format(n || 0) + ' FCFA';
+
+  const formatDate = (ts) => {
+    if (!ts) return 'Immédiatement';
+    const d = ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts);
+    return d.toLocaleDateString('fr-FR');
+  };
+
+  const typeLabels = {
+    maison: '🏠 Maison',
+    villa: '🏡 Villa',
+    appartement: '🏢 Appartement',
+    appartement_meuble: '🛋️ Appart. Meublé',
+    duplex: '🏘️ Duplex',
+    terrain: '🌍 Terrain',
+    bureau: '💼 Bureau',
+    boutique: '🏪 Boutique',
+    logement: '🏨 Logement'
+  };
+
+  const getTypeLabel = (t) => typeLabels[t] || t || 'Bien';
+
+  // Toast
+  const showToast = (msg, type = 'success') => {
+    const colors = { success:'#10b981', error:'#ef4444', warning:'#f59e0b', info:'#3b82f6' };
+    const icons = { success:'✅', error:'❌', warning:'⚠️', info:'ℹ️' };
+    const el = document.createElement('div');
+    el.className = 'toast-item';
+    el.style.background = colors[type];
+    el.innerHTML = '<span>' + icons[type] + '</span><span>' + msg + '</span>';
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => el.remove(), 4500);
+  };
+
+  // Theme
+  window.toggleTheme = () => {
+    const isDark = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    document.querySelectorAll('.theme-icon').forEach(el => {
+      el.textContent = isDark ? '☀️' : '🌙';
+    });
+  };
+
+  if (localStorage.getItem('theme') === 'dark') {
+    document.documentElement.classList.add('dark');
+    document.querySelectorAll('.theme-icon').forEach(el => { el.textContent = '☀️'; });
+  }
+
+  // ============================================
+  // RECUPERER L'ID DU BIEN DEPUIS L'URL
+  // ============================================
+  const getParams = () => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id') || '';
+  };
+
+  // ============================================
+  // CHARGER CONFIG AGENCE
+  // ============================================
+  const chargerConfig = async () => {
+    try {
+      const snap = await getDoc(doc(db, 'agence', 'config'));
+      if (!snap.exists()) return;
+      agenceConfig = snap.data();
+
+      if (agenceConfig.logo) {
+        document.getElementById('nav-logo').src = agenceConfig.logo;
+      }
+      if (agenceConfig.nom) {
+        document.getElementById('nav-nom').textContent = agenceConfig.nom;
+      }
+      if (agenceConfig.couleurPrimaire) {
+        document.documentElement.style.setProperty('--primary', agenceConfig.couleurPrimaire);
+      }
+    } catch (e) {
+      console.warn('Config:', e.message);
+    }
+  };
+
+  // ============================================
+  // CHARGER LE BIEN
+  // ============================================
+  const chargerBien = async (id) => {
+    try {
+      const snap = await getDoc(doc(db, 'biens', id));
+      if (!snap.exists()) {
+        afficherErreur('Ce bien est introuvable.');
+        return;
+      }
+
+      bienData = { id: snap.id, ...snap.data() };
+
+      if (bienData.statut !== 'publie') {
+        afficherErreur('Ce bien n\'est plus disponible à la réservation.');
+        return;
+      }
+
+      afficherContenu();
+
+    } catch (e) {
+      console.error(e);
+      afficherErreur('Erreur de chargement : ' + e.message);
+    }
+  };
+
+  // ============================================
+  // AFFICHER ERREUR
+  // ============================================
+  const afficherErreur = (msg) => {
+    document.getElementById('main-container').innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:80px 20px;">' +
+      '<div style="font-size:64px;margin-bottom:16px;">❌</div>' +
+      '<h3 style="font-size:20px;font-weight:700;margin-bottom:8px;">Oups !</h3>' +
+      '<p style="color:var(--text-light);">' + msg + '</p>' +
+      '<a href="../index.html" style="display:inline-block;margin-top:20px;' +
+      'background:var(--primary);color:white;padding:12px 24px;border-radius:10px;' +
+      'text-decoration:none;font-weight:600;">← Retour aux biens</a>' +
+      '</div>';
+  };
+
+  // ============================================
+  // CALCULER LE TOTAL
+  // ============================================
+  const calculerTotal = (duree) => {
+    const b = bienData;
+    const loyer = b.prix || 0;
+    const caution = b.caution || 0;
+    const avanceMois = b.avance || 1;
+    const avanceTotal = loyer * avanceMois;
+    const premierPaiement = caution + avanceTotal;
+    return { loyer, caution, avanceMois, avanceTotal, premierPaiement };
+  };
+
+  // ============================================
+  // METTRE A JOUR LE CALCUL TOTAL
+  // ============================================
+  window.majTotal = () => {
+    const duree = parseInt(document.getElementById('duree')?.value) || 1;
+    const t = calculerTotal(duree);
+    const b = bienData;
+
+    const el = document.getElementById('total-calcul');
+    if (!el) return;
+
+    el.innerHTML =
+      '<div class="total-row">' +
+      '<span class="t-label">💰 Loyer mensuel</span>' +
+      '<span class="t-value">' + formatPrix(t.loyer) + '</span>' +
+      '</div>' +
+      (t.caution ? '<div class="total-row">' +
+      '<span class="t-label">💵 Caution</span>' +
+      '<span class="t-value">' + formatPrix(t.caution) + '</span>' +
+      '</div>' : '') +
+      (b.avance ? '<div class="total-row">' +
+      '<span class="t-label">💵 Avance (' + t.avanceMois + ' mois)</span>' +
+      '<span class="t-value">' + formatPrix(t.avanceTotal) + '</span>' +
+      '</div>' : '') +
+      '<div class="total-row grand-total">' +
+      '<span class="t-label">💳 À payer à l\'entrée</span>' +
+      '<span class="t-value">' + formatPrix(t.premierPaiement) + '</span>' +
+      '</div>';
+  };
+    // ============================================
+  // AFFICHER LE CONTENU PRINCIPAL
+  // ============================================
+  const afficherContenu = () => {
+    const b = bienData;
+    const t = calculerTotal(1);
+    const photo = (b.photos && b.photos[0]) ? b.photos[0] : '';
+    const tl = getTypeLabel(b.type);
+
+    // --- RECAP BIEN (colonne droite) ---
+    const recapHTML =
+      '<div class="bien-recap fade-in">' +
+        '<div class="bien-recap-media">' +
+          (b.video
+            ? '<video muted loop autoplay src="' + b.video + '" poster="' + photo + '"></video>'
+            : (photo ? '<img src="' + photo + '" alt="' + (b.titre || 'Bien') + '" />'
+              : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:48px;color:#94a3b8;">🏠</div>')
+          ) +
+        '</div>' +
+        '<div class="bien-recap-body">' +
+          '<div class="bien-recap-type">' + tl + '</div>' +
+          '<div class="bien-recap-titre">' + (b.titre || 'Bien immobilier') + '</div>' +
+          '<div class="bien-recap-adresse">📍 ' + (b.adresse || 'Adresse non définie') + '</div>' +
+          '<div class="bien-recap-prix-list">' +
+            '<div class="prix-row">' +
+              '<span class="label">💰 Loyer</span>' +
+              '<span class="value">' + formatPrix(b.prix) + '/mois</span>' +
+            '</div>' +
+            (b.caution ? '<div class="prix-row"><span class="label">💵 Caution</span><span class="value">' + formatPrix(b.caution) + '</span></div>' : '') +
+            (b.avance ? '<div class="prix-row"><span class="label">💵 Avance</span><span class="value">' + b.avance + ' mois</span></div>' : '') +
+            (b.dureeMinLocation ? '<div class="prix-row"><span class="label">⏳ Durée min</span><span class="value">' + b.dureeMinLocation + ' mois</span></div>' : '') +
+            (b.surface ? '<div class="prix-row"><span class="label">📐 Surface</span><span class="value">' + b.surface + ' m²</span></div>' : '') +
+            (b.chambres ? '<div class="prix-row"><span class="label">🛏️ Chambres</span><span class="value">' + b.chambres + '</span></div>' : '') +
+          '</div>' +
+          '<div class="dispo-badge">✅ Disponible dès ' + formatDate(b.disponibilite) + '</div>' +
+          (b.contratPdf ?
+            '<div style="margin-top:14px;">' +
+            '<a href="' + b.contratPdf + '" target="_blank" style="display:inline-flex;align-items:center;gap:6px;color:var(--primary);font-size:13px;font-weight:600;text-decoration:none;">📄 Voir le contrat PDF</a>' +
+            '</div>' : '') +
+        '</div>' +
+      '</div>';
+
+    // --- FORMULAIRE (colonne gauche) ---
+    const formHTML =
+      '<div class="form-card fade-in">' +
+        '<h2>📋 Votre demande de réservation</h2>' +
+        '<p>Tous les champs marqués d\'un <span style="color:var(--danger);">*</span> sont obligatoires</p>' +
+
+        '<form id="reservation-form" onsubmit="soumettreReservation(event)">' +
+
+          // SECTION 1 : Infos personnelles
+          '<div class="form-section-title">👤 Vos informations personnelles</div>' +
+
+          '<div class="form-row">' +
+            '<div class="form-group">' +
+              '<label class="form-label">Nom complet <span class="required">*</span></label>' +
+              '<input type="text" id="client-nom" class="form-input" placeholder="Ex: Jean Dupont" required />' +
+              '<span class="error-msg" id="err-nom">Veuillez entrer votre nom</span>' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">Téléphone <span class="required">*</span></label>' +
+              '<input type="tel" id="client-tel" class="form-input" placeholder="Ex: +225 07 00 00 00" required />' +
+              '<span class="error-msg" id="err-tel">Veuillez entrer votre téléphone</span>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="form-row">' +
+            '<div class="form-group">' +
+              '<label class="form-label">Email <span class="required">*</span></label>' +
+              '<input type="email" id="client-email" class="form-input" placeholder="votre@email.com" required />' +
+              '<span class="error-msg" id="err-email">Email invalide</span>' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">Profession</label>' +
+              '<input type="text" id="client-profession" class="form-input" placeholder="Ex: Ingénieur, Médecin..." />' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="form-group">' +
+            '<label class="form-label">Adresse actuelle</label>' +
+            '<input type="text" id="client-adresse" class="form-input" placeholder="Votre adresse actuelle" />' +
+          '</div>' +
+
+          // SECTION 2 : Détails réservation
+          '<div class="form-section-title" style="margin-top:10px;">📅 Détails de la réservation</div>' +
+
+          '<div class="form-row">' +
+            '<div class="form-group">' +
+              '<label class="form-label">Date d\'entrée souhaitée <span class="required">*</span></label>' +
+              '<input type="date" id="date-debut" class="form-input" required />' +
+              '<span class="error-msg" id="err-date">Veuillez choisir une date</span>' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">Durée souhaitée (mois) <span class="required">*</span></label>' +
+              '<select id="duree" class="form-select" onchange="majTotal()" required>' +
+                '<option value="">-- Choisir --</option>' +
+                '<option value="1">1 mois</option>' +
+                '<option value="2">2 mois</option>' +
+                '<option value="3">3 mois</option>' +
+                '<option value="6">6 mois</option>' +
+                '<option value="12">12 mois (1 an)</option>' +
+                '<option value="24">24 mois (2 ans)</option>' +
+                '<option value="36">36 mois (3 ans)</option>' +
+              '</select>' +
+              '<span class="error-msg" id="err-duree">Veuillez choisir une durée</span>' +
+            '</div>' +
+          '</div>' +
+
+          '<div class="form-group">' +
+            '<label class="form-label">Nombre de personnes</label>' +
+            '<select id="nb-personnes" class="form-select">' +
+              '<option value="1">1 personne</option>' +
+              '<option value="2">2 personnes</option>' +
+              '<option value="3">3 personnes</option>' +
+              '<option value="4">4 personnes</option>' +
+              '<option value="5+">5 personnes et plus</option>' +
+            '</select>' +
+          '</div>' +
+
+          // SECTION 3 : Message
+          '<div class="form-section-title" style="margin-top:10px;">💬 Message</div>' +
+
+          '<div class="form-group">' +
+            '<label class="form-label">Message / Questions</label>' +
+            '<textarea id="client-message" class="form-textarea" ' +
+              'placeholder="Précisez vos questions, besoins spécifiques..."></textarea>' +
+            '<span class="form-hint">Facultatif — mais très utile pour l\'agence</span>' +
+          '</div>' +
+
+          // TOTAL CALCULÉ
+          '<div class="total-box">' +
+            '<h4>💳 Récapitulatif financier</h4>' +
+            '<div class="total-list" id="total-calcul">' +
+              '<div class="total-row">' +
+                '<span class="t-label">💰 Loyer mensuel</span>' +
+                '<span class="t-value">' + formatPrix(b.prix) + '</span>' +
+              '</div>' +
+              (b.caution ? '<div class="total-row"><span class="t-label">💵 Caution</span><span class="t-value">' + formatPrix(b.caution) + '</span></div>' : '') +
+              (b.avance ? '<div class="total-row"><span class="t-label">💵 Avance (' + b.avance + ' mois)</span><span class="t-value">' + formatPrix(b.prix * b.avance) + '</span></div>' : '') +
+              '<div class="total-row grand-total">' +
+                '<span class="t-label">💳 À payer à l\'entrée</span>' +
+                '<span class="t-value">' + formatPrix(t.premierPaiement) + '</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+
+          // CONDITIONS
+          '<div class="conditions-box">' +
+            '<h4>⚠️ Conditions importantes</h4>' +
+            '<ul>' +
+              '<li>📌 Cette réservation est une demande, pas une confirmation définitive</li>' +
+              '<li>📌 L\'agence vous contactera pour confirmer</li>' +
+              '<li>📌 Le paiement se fait uniquement en agence</li>' +
+              '<li>📌 Un contrat sera signé avant l\'entrée dans les lieux</li>' +
+              (b.dureeMinLocation ? '<li>📌 Durée minimum de location : ' + b.dureeMinLocation + ' mois</li>' : '') +
+            '</ul>' +
+          '</div>' +
+
+          // CHECKBOX
+          '<div class="checkbox-group">' +
+            '<input type="checkbox" id="accepte-conditions" />' +
+            '<label for="accepte-conditions">' +
+              'J\'ai lu et j\'accepte les conditions de réservation. ' +
+              (b.contratPdf ? '<a href="' + b.contratPdf + '" target="_blank">Voir le contrat</a>' : '') +
+            '</label>' +
+          '</div>' +
+
+          // BOUTON SUBMIT
+          '<button type="submit" class="btn-submit" id="btn-submit">' +
+            '✅ Envoyer ma demande de réservation' +
+          '</button>' +
+
+        '</form>' +
+      '</div>';
+
+    // Assembler les deux colonnes
+    // Sur mobile : recap en haut, form en bas
+    document.getElementById('main-container').innerHTML = formHTML + recapHTML;
+
+    // Mettre la date minimum à aujourd'hui
+    const today = new Date().toISOString().split('T')[0];
+    const dateInput = document.getElementById('date-debut');
+    if (dateInput) dateInput.min = today;
+  };
+    // ============================================
+  // VALIDATION DU FORMULAIRE
+  // ============================================
+  const validerFormulaire = () => {
+    let valide = true;
+
+    // Réinitialiser les erreurs
+    document.querySelectorAll('.error-msg').forEach(el => el.classList.remove('show'));
+    document.querySelectorAll('.form-input, .form-select').forEach(el => el.classList.remove('error'));
+
+    // Nom
+    const nom = document.getElementById('client-nom').value.trim();
+    if (!nom || nom.length < 2) {
+      document.getElementById('err-nom').classList.add('show');
+      document.getElementById('client-nom').classList.add('error');
+      valide = false;
+    }
+
+    // Téléphone
+    const tel = document.getElementById('client-tel').value.trim();
+    if (!tel || tel.length < 8) {
+      document.getElementById('err-tel').classList.add('show');
+      document.getElementById('client-tel').classList.add('error');
+      valide = false;
+    }
+
+    // Email
+    const email = document.getElementById('client-email').value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      document.getElementById('err-email').classList.add('show');
+      document.getElementById('client-email').classList.add('error');
+      valide = false;
+    }
+
+    // Date
+    const date = document.getElementById('date-debut').value;
+    if (!date) {
+      document.getElementById('err-date').classList.add('show');
+      document.getElementById('date-debut').classList.add('error');
+      valide = false;
+    }
+
+    // Durée
+    const duree = document.getElementById('duree').value;
+    if (!duree) {
+      document.getElementById('err-duree').classList.add('show');
+      document.getElementById('duree').classList.add('error');
+      valide = false;
+    }
+
+    // Conditions
+    const accepte = document.getElementById('accepte-conditions').checked;
+    if (!accepte) {
+      showToast('Veuillez accepter les conditions de réservation', 'warning');
+      valide = false;
+    }
+
+    return valide;
+  };
+
+  // ============================================
+  // SOUMETTRE LA RESERVATION
+  // ============================================
+  window.soumettreReservation = async (e) => {
+    e.preventDefault();
+
+    if (!validerFormulaire()) return;
+
+    const btn = document.getElementById('btn-submit');
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div> Envoi en cours...';
+
+    try {
+      // Collecter les données
+      const nom        = document.getElementById('client-nom').value.trim();
+      const tel        = document.getElementById('client-tel').value.trim();
+      const email      = document.getElementById('client-email').value.trim();
+      const profession = document.getElementById('client-profession').value.trim();
+      const adresse    = document.getElementById('client-adresse').value.trim();
+      const dateDebut  = document.getElementById('date-debut').value;
+      const duree      = document.getElementById('duree').value;
+      const nbPersonnes= document.getElementById('nb-personnes').value;
+      const message    = document.getElementById('client-message').value.trim();
+
+      const b = bienData;
+      const t = calculerTotal(parseInt(duree));
+
+      // Sauvegarder dans Firestore
+      const reservationData = {
+        bienId:        b.id,
+        bienTitre:     b.titre || '',
+        bienAdresse:   b.adresse || '',
+        bienType:      b.type || '',
+        bienPrix:      b.prix || 0,
+        clientNom:     nom,
+        clientTel:     tel,
+        clientEmail:   email,
+        clientProfession: profession,
+        clientAdresse: adresse,
+        dateDebut:     dateDebut,
+        duree:         duree,
+        nbPersonnes:   nbPersonnes,
+        message:       message,
+        montantLoyer:  t.loyer,
+        montantCaution: t.caution,
+        montantAvance: t.avanceTotal,
+        totalEntree:   t.premierPaiement,
+        statut:        'en_attente',
+        createdAt:     serverTimestamp()
+      };
+
+      await addDoc(collection(db, 'reservations'), reservationData);
+
+      // Envoyer WhatsApp à l'agence
+      const wa = agenceConfig.whatsapp ? agenceConfig.whatsapp.replace(/\D/g, '') : '';
+      if (wa) {
+        const msgWa =
+          '🏠 *NOUVELLE RÉSERVATION*\n\n' +
+          '📋 *Bien :* ' + (b.titre || 'Bien immobilier') + '\n' +
+          '📍 *Adresse :* ' + (b.adresse || 'N/A') + '\n' +
+          '💰 *Prix :* ' + formatPrix(b.prix) + '/mois\n\n' +
+          '👤 *Client :*\n' +
+          '• Nom : ' + nom + '\n' +
+          '• Téléphone : ' + tel + '\n' +
+          '• Email : ' + email + '\n' +
+          (profession ? '• Profession : ' + profession + '\n' : '') +
+          (adresse ? '• Adresse : ' + adresse + '\n' : '') +
+          '\n📅 *Réservation :*\n' +
+          '• Date souhaitée : ' + dateDebut + '\n' +
+          '• Durée : ' + duree + ' mois\n' +
+          '• Personnes : ' + nbPersonnes + '\n\n' +
+          '💳 *Finances :*\n' +
+          '• Caution : ' + formatPrix(t.caution) + '\n' +
+          '• Avance : ' + formatPrix(t.avanceTotal) + '\n' +
+          '• Total entrée : ' + formatPrix(t.premierPaiement) + '\n\n' +
+          (message ? '💬 *Message :* ' + message + '\n\n' : '') +
+          '_Envoyé depuis Immo Elite_';
+
+        // Ouvrir WhatsApp
+        setTimeout(() => {
+          window.open('https://wa.me/' + wa + '?text=' + encodeURIComponent(msgWa), '_blank');
+        }, 1500);
+      }
+
+      // Afficher le succès
+      afficherSucces(nom, wa);
+
+    } catch (err) {
+      console.error(err);
+      showToast('Erreur lors de l\'envoi : ' + err.message, 'error');
+      btn.disabled = false;
+      btn.innerHTML = '✅ Envoyer ma demande de réservation';
+    }
+  };
+
+  // ============================================
+  // AFFICHER SUCCES
+  // ============================================
+  const afficherSucces = (nom, wa) => {
+    const b = bienData;
+    const container = document.getElementById('main-container');
+
+    container.style.gridTemplateColumns = '1fr';
+
+    container.innerHTML =
+      '<div class="success-state fade-in" style="grid-column:1/-1;">' +
+        '<span class="success-icon">🎉</span>' +
+        '<h2>Demande envoyée !</h2>' +
+        '<p>' +
+          'Merci <strong>' + nom + '</strong> ! Votre demande de réservation pour ' +
+          '<strong>' + (b.titre || 'ce bien') + '</strong> a été envoyée avec succès. ' +
+          'Notre équipe vous contactera très prochainement.' +
+        '</p>' +
+
+        '<div style="background:var(--bg-card);border:1px solid var(--border);' +
+          'border-radius:var(--radius);padding:20px;max-width:400px;margin:0 auto 30px;text-align:left;">' +
+          '<div style="font-weight:700;margin-bottom:12px;">📋 Récapitulatif :</div>' +
+          '<div style="display:flex;flex-direction:column;gap:8px;font-size:14px;">' +
+            '<div style="display:flex;justify-content:space-between;">' +
+              '<span style="color:var(--text-light);">Bien :</span>' +
+              '<span style="font-weight:600;">' + (b.titre || 'N/A') + '</span>' +
+            '</div>' +
+            '<div style="display:flex;justify-content:space-between;">' +
+              '<span style="color:var(--text-light);">Statut :</span>' +
+              '<span style="color:#10b981;font-weight:700;">⏳ En attente de confirmation</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="success-btns">' +
+          (wa ?
+            '<a href="https://wa.me/' + wa + '" target="_blank" class="btn-success-wa">' +
+            '💬 Contacter sur WhatsApp</a>' : '') +
+          '<a href="../index.html" class="btn-retour">🏠 Retour aux biens</a>' +
+        '</div>' +
+      '</div>';
+
+    showToast('Réservation envoyée avec succès !', 'success');
+  };
+    // ============================================
+  // INITIALISATION
+  // ============================================
+  const init = async () => {
+    bienId = getParams();
+
+    if (!bienId) {
+      afficherErreur('Aucun bien sélectionné. Veuillez choisir un bien depuis la page d\'accueil.');
+      return;
+    }
+
+    try {
+      await chargerConfig();
+      await chargerBien(bienId);
+    } catch (e) {
+      console.error('Erreur init:', e);
+      afficherErreur('Erreur de chargement. Veuillez réessayer.');
+    }
+  };
+
+  init();
+
+</script>
+</body>
+</html>
