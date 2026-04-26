@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Dashboard Agence - Immo Elite</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Son de notification -->
+  <audio id="notif-sound" preload="auto">
+    <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg"/>
+  </audio>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
     :root{
@@ -180,6 +184,15 @@
     </div>
     <nav class="sidebar-menu">
       <div class="menu-section"><div class="menu-section-title">Principal</div>
+      <div class="menu-section">
+        <div class="menu-section-title">Analytique</div>
+        <button class="menu-item" onclick="showPage('analytique')">
+          <span class="menu-icon">📈</span> Analytique
+        </button>
+        <button class="menu-item" onclick="showPage('import-export')">
+          <span class="menu-icon">📦</span> Import / Export
+        </button>
+      </div>
         <button class="menu-item active" onclick="showPage('dashboard')"><span class="menu-icon">📊</span> Tableau de bord</button>
       </div>
       <div class="menu-section"><div class="menu-section-title">Biens</div>
@@ -196,6 +209,16 @@
         <button class="menu-item" onclick="showPage('contrats')"><span class="menu-icon">📄</span> Contrats</button>
         <button class="menu-item" onclick="showPage('finances')"><span class="menu-icon">💰</span> Finances</button>
         <button class="menu-item" onclick="showPage('impressions')"><span class="menu-icon">🖨️</span> Impressions</button>
+      </div>
+      <div class="menu-section">
+        <div class="menu-section-title">Activité</div>
+        <button class="menu-item" onclick="showPage('notifications')">
+          <span class="menu-icon">🔔</span> Notifications
+          <span class="menu-badge" id="badge-notifs">0</span>
+        </button>
+        <button class="menu-item" onclick="showPage('historique-connexions')">
+          <span class="menu-icon">🔐</span> Historique connexions
+        </button>
       </div>
       <div class="menu-section" id="menu-admin"><div class="menu-section-title">Administration</div>
         <button class="menu-item" onclick="showPage('comptes')"><span class="menu-icon">👥</span> Comptes employés</button>
@@ -214,6 +237,39 @@
       <span class="page-title" id="page-title">Tableau de bord</span>
     </div>
     <div class="topbar-right">
+      <!-- NOTIFICATIONS -->
+      <div style="position:relative;">
+        <button onclick="toggleNotifications()" style="
+          background:none;border:1px solid var(--border);border-radius:8px;
+          padding:8px 12px;cursor:pointer;font-size:15px;color:var(--text);
+          transition:all .2s;position:relative;
+        ">
+          🔔
+          <span id="notif-badge" style="
+            display:none;position:absolute;top:-6px;right:-6px;
+            background:#ef4444;color:white;font-size:10px;font-weight:700;
+            width:18px;height:18px;border-radius:50%;
+            align-items:center;justify-content:center;
+          ">0</span>
+        </button>
+
+        <!-- DROPDOWN NOTIFICATIONS -->
+        <div id="notif-dropdown" style="
+          display:none;position:absolute;top:50px;right:0;
+          background:var(--bg-card);border:1px solid var(--border);
+          border-radius:var(--radius-lg);width:340px;
+          box-shadow:0 10px 40px rgba(0,0,0,0.15);z-index:500;
+          max-height:400px;overflow-y:auto;
+        ">
+          <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-weight:700;">🔔 Notifications</span>
+            <button onclick="marquerToutLu()" style="background:none;border:none;color:var(--primary);font-size:12px;cursor:pointer;font-weight:600;">Tout marquer lu</button>
+          </div>
+          <div id="notif-list">
+            <div style="padding:20px;text-align:center;color:var(--text-light);font-size:13px;">Aucune notification</div>
+          </div>
+        </div>
+      </div>
       <span class="role-chip" id="role-chip">---</span>
       <button class="theme-btn" onclick="toggleTheme()"><span class="theme-icon">🌙</span></button>
     </div>
@@ -368,6 +424,261 @@
       </div>
     </section>
 
+    <!-- NOTIFICATIONS -->
+    <!-- ANALYTIQUE -->
+    <section class="page-section" id="page-analytique">
+      <div style="margin-bottom:22px;">
+        <h2 style="font-size:21px;font-weight:800;margin-bottom:4px;">📈 Tableau de bord analytique</h2>
+        <p style="color:var(--text-light);font-size:13px;">Performance et statistiques détaillées</p>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="stats-grid" id="kpi-grid" style="margin-bottom:28px;">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#dcfce7;">📊</div>
+          <div class="stat-info"><h3 id="kpi-taux-occupation" style="font-size:20px;">0%</h3><p>Taux d'occupation</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#dbeafe;">👁️</div>
+          <div class="stat-info"><h3 id="kpi-total-vues">0</h3><p>Vues totales</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fef9c3;">📅</div>
+          <div class="stat-info"><h3 id="kpi-taux-conversion" style="font-size:20px;">0%</h3><p>Taux de conversion</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#ede9fe;">💰</div>
+          <div class="stat-info"><h3 id="kpi-revenu-moyen" style="font-size:18px;">0</h3><p>Revenu moyen/bien</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fee2e2;">⭐</div>
+          <div class="stat-info"><h3 id="kpi-note-moyenne" style="font-size:20px;">0/5</h3><p>Note moyenne</p></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#dcfce7;">🔑</div>
+          <div class="stat-info"><h3 id="kpi-duree-moyenne" style="font-size:18px;">0 mois</h3><p>Durée moyenne location</p></div>
+        </div>
+      </div>
+
+      <!-- Graphiques -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+        <div class="card">
+          <div class="card-header"><span class="card-title">🏠 Biens les plus consultés</span></div>
+          <div class="card-body"><canvas id="chart-top-biens" height="280"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">📅 Réservations par mois</span></div>
+          <div class="card-body"><canvas id="chart-reservations-mois" height="280"></canvas></div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+        <div class="card">
+          <div class="card-header"><span class="card-title">💰 Revenus par propriétaire</span></div>
+          <div class="card-body"><canvas id="chart-revenus-proprio" height="280"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">🏷️ Répartition par type de bien</span></div>
+          <div class="card-body"><canvas id="chart-types-biens" height="280"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Top biens tableau -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">🏆 Top 10 biens les plus performants</span></div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Bien</th>
+                  <th>Type</th>
+                  <th>Prix</th>
+                  <th>Vues</th>
+                  <th>Statut</th>
+                  <th>Note</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-top-biens">
+                <tr><td colspan="7" style="text-align:center;padding:40px;">
+                  <div class="loader" style="margin:0 auto;"></div>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Propriétaires performance -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">👥 Performance des propriétaires</span></div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Propriétaire</th>
+                  <th>Biens total</th>
+                  <th>Biens loués</th>
+                  <th>Revenus estimés</th>
+                  <th>Taux occupation</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-perf-proprios">
+                <tr><td colspan="5" style="text-align:center;padding:40px;">
+                  <div class="loader" style="margin:0 auto;"></div>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- IMPORT EXPORT -->
+    <section class="page-section" id="page-import-export">
+      <div style="margin-bottom:22px;">
+        <h2 style="font-size:21px;font-weight:800;margin-bottom:4px;">📦 Import / Export</h2>
+        <p style="color:var(--text-light);font-size:13px;">Importer et exporter vos données</p>
+      </div>
+
+      <!-- EXPORT -->
+      <div class="card" style="margin-bottom:24px;">
+        <div class="card-header"><span class="card-title">📤 Exporter les données</span></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;">
+
+            <div style="border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;">
+              <div style="font-size:40px;margin-bottom:10px;">🏠</div>
+              <h4 style="font-weight:700;margin-bottom:6px;">Biens</h4>
+              <p style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Exporter tous les biens en CSV</p>
+              <button class="btn btn-primary btn-sm" onclick="exporterCSV('biens')">📥 Exporter CSV</button>
+            </div>
+
+            <div style="border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;">
+              <div style="font-size:40px;margin-bottom:10px;">📅</div>
+              <h4 style="font-weight:700;margin-bottom:6px;">Réservations</h4>
+              <p style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Exporter toutes les réservations</p>
+              <button class="btn btn-success btn-sm" onclick="exporterCSV('reservations')">📥 Exporter CSV</button>
+            </div>
+
+            <div style="border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;">
+              <div style="font-size:40px;margin-bottom:10px;">🔑</div>
+              <h4 style="font-weight:700;margin-bottom:6px;">Propriétaires</h4>
+              <p style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Exporter la liste des propriétaires</p>
+              <button class="btn btn-warning btn-sm" onclick="exporterCSV('proprietaires')">📥 Exporter CSV</button>
+            </div>
+
+            <div style="border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;">
+              <div style="font-size:40px;margin-bottom:10px;">💰</div>
+              <h4 style="font-weight:700;margin-bottom:6px;">Finances</h4>
+              <p style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Exporter toutes les transactions</p>
+              <button class="btn btn-purple btn-sm" onclick="exporterCSV('finances')">📥 Exporter CSV</button>
+            </div>
+
+            <div style="border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;">
+              <div style="font-size:40px;margin-bottom:10px;">📦</div>
+              <h4 style="font-weight:700;margin-bottom:6px;">Tout exporter</h4>
+              <p style="font-size:12px;color:var(--text-light);margin-bottom:14px;">Exporter toutes les données JSON</p>
+              <button class="btn btn-danger btn-sm" onclick="exporterTout()">📥 Exporter JSON</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- IMPORT -->
+      <div class="card">
+        <div class="card-header"><span class="card-title">📥 Importer des données</span></div>
+        <div class="card-body">
+
+          <div style="background:#fef9c3;border:1px solid #fcd34d;border-radius:10px;padding:14px;margin-bottom:20px;">
+            <strong style="color:#92400e;">⚠️ Attention :</strong>
+            <span style="color:#78350f;font-size:13px;"> L'importation peut écraser des données existantes. Faites une sauvegarde avant d'importer.</span>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+
+            <div>
+              <h4 style="font-weight:700;margin-bottom:14px;">📋 Importer des biens (CSV)</h4>
+              <div class="upload-zone" id="zone-import-biens">
+                <div style="font-size:28px;margin-bottom:6px;">📋</div>
+                <div><strong>Cliquez pour importer un CSV</strong></div>
+                <p>Format : titre, type, adresse, prix, categorie</p>
+                <input type="file" id="import-biens-file" accept=".csv" onchange="importerCSV(this, 'biens')"/>
+              </div>
+            </div>
+
+            <div>
+              <h4 style="font-weight:700;margin-bottom:14px;">💰 Importer des finances (CSV)</h4>
+              <div class="upload-zone" id="zone-import-finances">
+                <div style="font-size:28px;margin-bottom:6px;">💰</div>
+                <div><strong>Cliquez pour importer un CSV</strong></div>
+                <p>Format : type, categorie, montant, description, date</p>
+                <input type="file" id="import-finances-file" accept=".csv" onchange="importerCSV(this, 'finances')"/>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Résultat import -->
+          <div id="import-result" style="margin-top:16px;"></div>
+
+          <!-- Modèle CSV -->
+          <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border);">
+            <h4 style="font-weight:700;margin-bottom:12px;">📄 Télécharger des modèles CSV</h4>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn btn-outline btn-sm" onclick="telechargerModeleCSV('biens')">📋 Modèle Biens</button>
+              <button class="btn btn-outline btn-sm" onclick="telechargerModeleCSV('finances')">💰 Modèle Finances</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+    <section class="page-section" id="page-notifications">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🔔 Toutes les notifications</span>
+          <button class="btn btn-outline btn-sm" onclick="marquerToutLu()">✅ Tout marquer lu</button>
+        </div>
+        <div class="card-body" id="notif-page-content">
+          <div style="text-align:center;padding:40px;">
+            <div class="loader" style="margin:0 auto;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HISTORIQUE CONNEXIONS -->
+    <section class="page-section" id="page-historique-connexions">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🔐 Historique des connexions</span>
+        </div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Utilisateur</th>
+                  <th>Rôle</th>
+                  <th>Action</th>
+                  <th>Date & Heure</th>
+                  <th>Navigateur</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-historique">
+                <tr><td colspan="5" style="text-align:center;padding:40px;">
+                  <div class="loader" style="margin:0 auto;"></div>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
     <!-- COMPTES -->
     <section class="page-section" id="page-comptes">
       <div class="card"><div class="card-header"><span class="card-title">👥 Comptes</span><button class="btn btn-primary btn-sm" onclick="ouvrirCreerCompte()">➕</button></div><div class="card-body"><div class="table-wrap"><table><thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Actions</th></tr></thead><tbody id="tbody-comptes"><tr><td colspan="5" style="text-align:center;padding:40px;"><div class="loader" style="margin:0 auto;"></div></td></tr></tbody></table></div></div></div>
@@ -490,7 +801,8 @@
     if (page === 'biens') chargerBiens(); if (page === 'biens-attente') chargerBiensAttente();
     if (page === 'reservations') chargerReservations(); if (page === 'proprietaires') chargerProprietaires();
     if (page === 'demandes') chargerDemandes(); if (page === 'contrats') chargerContrats();
-    if (page === 'finances') chargerFinances(); if (page === 'comptes') chargerComptes();
+    if (page === 'finances') chargerFinances();    if (page === 'notifications') afficherNotifications(toutesNotifications);
+    if (page === 'historique-connexions') chargerHistoriqueConnexions();     if (page === 'analytique') chargerAnalytique();if (page === 'comptes') chargerComptes();
     if (page === 'configuration') chargerConfiguration();
   };
 
@@ -540,11 +852,238 @@
       document.getElementById('sb-user-role').textContent = roleLabels[userData.role] || userData.role;
       document.getElementById('role-chip').textContent = roleLabels[userData.role] || userData.role;
       if (userData.role !== 'pdg') { const m = document.getElementById('menu-admin'); if (m) m.style.display = 'none'; }
-      await chargerAgenceConfig(); await chargerDashboard();
+           await chargerAgenceConfig();
+      await chargerDashboard();
+      await enregistrerConnexion();
+      demarrerNotifications();
     } catch (e) { console.error(e); showToast('Erreur', 'error'); }
   });
 
-  window.seDeconnecter = async () => { try { await signOut(auth); window.location.href = 'login.html'; } catch (e) { showToast('Erreur', 'error'); } };
+  // ============================================
+  // NOTIFICATIONS TEMPS REEL
+  // ============================================
+  let notificationsLues = JSON.parse(localStorage.getItem('notifs_lues') || '[]');
+  let toutesNotifications = [];
+  let notifListener = null;
+
+  const demarrerNotifications = () => {
+    // Écouter les nouvelles réservations en temps réel
+    const { onSnapshot } = window.firestoreModules || {};
+
+    // Vérifier toutes les 30 secondes
+    setInterval(async () => {
+      await verifierNouvellesNotifications();
+    }, 30000);
+
+    // Vérifier immédiatement
+    verifierNouvellesNotifications();
+  };
+
+  const verifierNouvellesNotifications = async () => {
+    try {
+      const notifs = [];
+
+      // Nouvelles réservations
+      const resSnap = await getDocs(collection(db, 'reservations'));
+      const reservations = resSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const nouvRes = reservations.filter(r => r.statut === 'en_attente');
+      nouvRes.forEach(r => {
+        notifs.push({
+          id: 'res_' + r.id,
+          type: 'reservation',
+          icon: '📅',
+          titre: 'Nouvelle réservation',
+          message: (r.clientNom || 'Un client') + ' veut réserver ' + (r.bienTitre || 'un bien'),
+          date: r.createdAt,
+          lien: 'reservations',
+          lu: notificationsLues.includes('res_' + r.id)
+        });
+      });
+
+      // Nouveaux biens en attente
+      const biensSnap = await getDocs(query(collection(db, 'biens'), where('statut', '==', 'en_attente')));
+      biensSnap.docs.forEach(d => {
+        const b = d.data();
+        notifs.push({
+          id: 'bien_' + d.id,
+          type: 'bien',
+          icon: '🏠',
+          titre: 'Bien en attente',
+          message: (b.proprietaireNom || 'Un propriétaire') + ' a soumis : ' + (b.titre || 'un bien'),
+          date: b.createdAt,
+          lien: 'biens-attente',
+          lu: notificationsLues.includes('bien_' + d.id)
+        });
+      });
+
+      // Nouvelles demandes propriétaires
+      const demSnap = await getDocs(query(collection(db, 'demandes_proprietaires'), where('statut', '==', 'en_attente')));
+      demSnap.docs.forEach(d => {
+        const dem = d.data();
+        notifs.push({
+          id: 'dem_' + d.id,
+          type: 'demande',
+          icon: '🔑',
+          titre: 'Nouvelle demande propriétaire',
+          message: (dem.nom || 'Quelqu\'un') + ' veut devenir propriétaire partenaire',
+          date: dem.createdAt,
+          lien: 'demandes',
+          lu: notificationsLues.includes('dem_' + d.id)
+        });
+      });
+
+      // Trier par date
+      notifs.sort((a, b) => {
+        const da = a.date?.seconds || 0;
+        const db2 = b.date?.seconds || 0;
+        return db2 - da;
+      });
+
+      toutesNotifications = notifs;
+      const nonLues = notifs.filter(n => !n.lu).length;
+
+      // Mettre à jour le badge
+      const badge = document.getElementById('notif-badge');
+      const badgeMenu = document.getElementById('badge-notifs');
+      if (badge) {
+        badge.textContent = nonLues;
+        badge.style.display = nonLues > 0 ? 'flex' : 'none';
+      }
+      if (badgeMenu) badgeMenu.textContent = nonLues;
+
+      // Jouer son si nouvelles notifications
+      if (nonLues > 0) {
+        const sound = document.getElementById('notif-sound');
+        if (sound && nonLues !== parseInt(localStorage.getItem('last_notif_count') || '0')) {
+          sound.play().catch(() => {});
+          localStorage.setItem('last_notif_count', nonLues.toString());
+        }
+      }
+
+      afficherNotifications(notifs);
+
+    } catch (e) { console.warn('Notifs:', e.message); }
+  };
+
+  const afficherNotifications = (notifs) => {
+    const list = document.getElementById('notif-list');
+    const page = document.getElementById('notif-page-content');
+
+    if (notifs.length === 0) {
+      const html = '<div style="padding:20px;text-align:center;color:var(--text-light);font-size:13px;">🎉 Aucune notification</div>';
+      if (list) list.innerHTML = html;
+      if (page) page.innerHTML = html;
+      return;
+    }
+
+    const html = notifs.map(n => {
+      const date = n.date?.seconds ? new Date(n.date.seconds * 1000).toLocaleString('fr-FR') : '—';
+      return '<div onclick="clicNotification(\'' + n.id + '\',\'' + n.lien + '\')" style="' +
+        'padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer;' +
+        'background:' + (n.lu ? 'transparent' : 'rgba(37,99,235,0.05)') + ';' +
+        'transition:background .2s;display:flex;align-items:flex-start;gap:12px;' +
+        '" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'' + (n.lu ? 'transparent' : 'rgba(37,99,235,0.05)') + '\'">' +
+        '<div style="font-size:24px;flex-shrink:0;">' + n.icon + '</div>' +
+        '<div style="flex:1;">' +
+          '<div style="font-weight:' + (n.lu ? '500' : '700') + ';font-size:13px;margin-bottom:3px;">' + n.titre + '</div>' +
+          '<div style="font-size:12px;color:var(--text-light);margin-bottom:4px;">' + n.message + '</div>' +
+          '<div style="font-size:11px;color:var(--text-light);">🕐 ' + date + '</div>' +
+        '</div>' +
+        (!n.lu ? '<div style="width:8px;height:8px;border-radius:50%;background:var(--primary);flex-shrink:0;margin-top:4px;"></div>' : '') +
+        '</div>';
+    }).join('');
+
+    if (list) list.innerHTML = html;
+    if (page) page.innerHTML = html;
+  };
+
+  window.toggleNotifications = () => {
+    const dd = document.getElementById('notif-dropdown');
+    dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+  };
+
+  window.clicNotification = (id, lien) => {
+    // Marquer comme lu
+    if (!notificationsLues.includes(id)) {
+      notificationsLues.push(id);
+      localStorage.setItem('notifs_lues', JSON.stringify(notificationsLues));
+    }
+    document.getElementById('notif-dropdown').style.display = 'none';
+    showPage(lien);
+  };
+
+  window.marquerToutLu = () => {
+    toutesNotifications.forEach(n => {
+      if (!notificationsLues.includes(n.id)) notificationsLues.push(n.id);
+    });
+    localStorage.setItem('notifs_lues', JSON.stringify(notificationsLues));
+    localStorage.setItem('last_notif_count', '0');
+    verifierNouvellesNotifications();
+    showToast('Tout marqué comme lu !', 'success');
+  };
+
+  // Fermer dropdown en cliquant dehors
+  document.addEventListener('click', (e) => {
+    const dd = document.getElementById('notif-dropdown');
+    if (dd && !dd.contains(e.target) && !e.target.closest('button[onclick="toggleNotifications()"]')) {
+      dd.style.display = 'none';
+    }
+  });
+
+  // ============================================
+  // HISTORIQUE CONNEXIONS
+  // ============================================
+  const enregistrerConnexion = async () => {
+    try {
+      await addDoc(collection(db, 'historique_connexions'), {
+        userId: currentUser.uid,
+        userNom: userData.nom || 'Admin',
+        userRole: userData.role || '—',
+        action: 'connexion',
+        navigateur: navigator.userAgent.substring(0, 100),
+        date: serverTimestamp()
+      });
+    } catch (e) { console.warn('Historique:', e.message); }
+  };
+
+  const chargerHistoriqueConnexions = async () => {
+    const tbody = document.getElementById('tbody-historique');
+    try {
+      const snap = await getDocs(collection(db, 'historique_connexions'));
+      const hist = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      // Trier par date décroissant
+      hist.sort((a, b) => (b.date?.seconds || 0) - (a.date?.seconds || 0));
+
+      if (hist.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-light);">Aucun historique</td></tr>';
+        return;
+      }
+
+      const roleL = { pdg: '👑 PDG', gerant: '🧑‍💼 Gérant', secretaire: '📋 Secrétaire' };
+
+      tbody.innerHTML = hist.slice(0, 50).map(h => {
+        const date = h.date?.seconds ? new Date(h.date.seconds * 1000).toLocaleString('fr-FR') : '—';
+        const nav = h.navigateur || '—';
+        const isChrome = nav.includes('Chrome');
+        const isFirefox = nav.includes('Firefox');
+        const isSafari = nav.includes('Safari') && !isChrome;
+        const navIcon = isChrome ? '🌐' : isFirefox ? '🦊' : isSafari ? '🍎' : '💻';
+
+        return '<tr>' +
+          '<td><strong>' + (h.userNom || '—') + '</strong></td>' +
+          '<td><span class="badge badge-info">' + (roleL[h.userRole] || h.userRole || '—') + '</span></td>' +
+          '<td><span class="badge badge-success">🔓 ' + (h.action || 'connexion') + '</span></td>' +
+          '<td>' + date + '</td>' +
+          '<td>' + navIcon + ' ' + (isChrome ? 'Chrome' : isFirefox ? 'Firefox' : isSafari ? 'Safari' : 'Autre') + '</td>' +
+          '</tr>';
+      }).join('');
+
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="5" style="color:var(--danger);">Erreur : ' + e.message + '</td></tr>';
+    }
+  }; 
+ window.seDeconnecter = async () => { try { await signOut(auth); window.location.href = 'login.html'; } catch (e) { showToast('Erreur', 'error'); } };
 
   // DASHBOARD
   const chargerDashboard = async () => {
@@ -796,6 +1335,311 @@
     } catch (err) { showToast('Erreur : ' + err.message, 'error'); } finally { btn.disabled = false; btn.innerHTML = '💾 Sauvegarder'; }
   };
 
+  // ============================================
+  // ANALYTIQUE
+  // ============================================
+  const chargerAnalytique = async () => {
+    try {
+      // Données de base
+      const biensSnap = await getDocs(collection(db, 'biens'));
+      const biens = biensSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const resSnap = await getDocs(collection(db, 'reservations'));
+      const reservations = resSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const finSnap = await getDocs(collection(db, 'finances'));
+      const finances = finSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const avisSnap = await getDocs(collection(db, 'avis'));
+      const avis = avisSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const propSnap = await getDocs(collection(db, 'proprietaires'));
+      const proprios = propSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      const devise = agenceConfig.devise || 'FCFA';
+
+      // KPIs
+      const biensPublies = biens.filter(b => b.statut === 'publie' || b.statut === 'loue');
+      const biensLoues   = biens.filter(b => b.statut === 'loue');
+      const tauxOccup    = biensPublies.length > 0 ? Math.round((biensLoues.length / biensPublies.length) * 100) : 0;
+      const totalVues    = biens.reduce((s, b) => s + (b.vues || 0), 0);
+      const tauxConv     = totalVues > 0 ? Math.round((reservations.length / totalVues) * 100) : 0;
+      const revTotal     = finances.filter(f => f.type === 'revenu').reduce((s, f) => s + (f.montant || 0), 0);
+      const revMoyen     = biensLoues.length > 0 ? Math.round(revTotal / biensLoues.length) : 0;
+      const noteMoy      = avis.length > 0 ? (avis.reduce((s, a) => s + (a.note || 0), 0) / avis.length).toFixed(1) : 0;
+      const dureeMoy     = reservations.filter(r => r.duree).length > 0 ?
+        Math.round(reservations.filter(r => r.duree).reduce((s, r) => s + parseInt(r.duree || 0), 0) / reservations.filter(r => r.duree).length) : 0;
+
+      // Mettre à jour KPIs
+      document.getElementById('kpi-taux-occupation').textContent = tauxOccup + '%';
+      document.getElementById('kpi-total-vues').textContent = totalVues;
+      document.getElementById('kpi-taux-conversion').textContent = tauxConv + '%';
+      document.getElementById('kpi-revenu-moyen').textContent = new Intl.NumberFormat('fr-FR').format(revMoyen) + ' ' + devise;
+      document.getElementById('kpi-note-moyenne').textContent = noteMoy + '/5';
+      document.getElementById('kpi-duree-moyenne').textContent = dureeMoy + ' mois';
+
+      // GRAPHIQUE 1 : Top biens consultés
+      const topBiens = [...biens].sort((a, b) => (b.vues || 0) - (a.vues || 0)).slice(0, 8);
+      const c1 = document.getElementById('chart-top-biens');
+      if (c1 && c1.getContext) {
+        if (window.ctb) window.ctb.destroy();
+        window.ctb = new Chart(c1.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: topBiens.map(b => (b.titre || 'Bien').substring(0, 15) + '...'),
+            datasets: [{ label: 'Vues', data: topBiens.map(b => b.vues || 0), backgroundColor: '#2563eb', borderRadius: 6 }]
+          },
+          options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+      }
+
+      // GRAPHIQUE 2 : Réservations par mois
+      const moisNoms = []; const resParMois = [];
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(); d.setMonth(d.getMonth() - i);
+        moisNoms.push(d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }));
+        const m = d.getMonth(); const y = d.getFullYear();
+        resParMois.push(reservations.filter(r => {
+          const rd = r.createdAt?.seconds ? new Date(r.createdAt.seconds * 1000) : null;
+          return rd && rd.getMonth() === m && rd.getFullYear() === y;
+        }).length);
+      }
+      const c2 = document.getElementById('chart-reservations-mois');
+      if (c2 && c2.getContext) {
+        if (window.crm) window.crm.destroy();
+        window.crm = new Chart(c2.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: moisNoms,
+            datasets: [{ label: 'Réservations', data: resParMois, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.4, fill: true }]
+          },
+          options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+        });
+      }
+
+      // GRAPHIQUE 3 : Revenus par propriétaire
+      const revParProprio = {};
+      biens.filter(b => b.statut === 'loue' && b.proprietaireNom).forEach(b => {
+        const nom = b.proprietaireNom || 'Agence';
+        revParProprio[nom] = (revParProprio[nom] || 0) + (b.prix || 0);
+      });
+      const c3 = document.getElementById('chart-revenus-proprio');
+      if (c3 && c3.getContext) {
+        if (window.crp) window.crp.destroy();
+        window.crp = new Chart(c3.getContext('2d'), {
+          type: 'doughnut',
+          data: {
+            labels: Object.keys(revParProprio),
+            datasets: [{ data: Object.values(revParProprio), backgroundColor: ['#2563eb','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4'], borderWidth: 0 }]
+          },
+          options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
+      }
+
+      // GRAPHIQUE 4 : Types de biens
+      const typeCount = {};
+      biens.forEach(b => { typeCount[b.type || 'autre'] = (typeCount[b.type || 'autre'] || 0) + 1; });
+      const c4 = document.getElementById('chart-types-biens');
+      if (c4 && c4.getContext) {
+        if (window.ctypes) window.ctypes.destroy();
+        window.ctypes = new Chart(c4.getContext('2d'), {
+          type: 'pie',
+          data: {
+            labels: Object.keys(typeCount).map(t => getTypeLabel(t)),
+            datasets: [{ data: Object.values(typeCount), backgroundColor: ['#2563eb','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#84cc16','#f43f5e'], borderWidth: 0 }]
+          },
+          options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+        });
+      }
+
+      // TABLEAU : Top biens
+      const tbody1 = document.getElementById('tbody-top-biens');
+      tbody1.innerHTML = topBiens.map((b, i) => {
+        const etoiles = b.noteMoyenne ? '★'.repeat(Math.round(b.noteMoyenne)) + '☆'.repeat(5 - Math.round(b.noteMoyenne)) : '—';
+        return '<tr>' +
+          '<td><strong>#' + (i + 1) + '</strong></td>' +
+          '<td><strong>' + (b.titre || '—') + '</strong></td>' +
+          '<td>' + getTypeLabel(b.type) + '</td>' +
+          '<td style="color:var(--primary);font-weight:700;">' + formatPrix(b.prix) + '</td>' +
+          '<td><span class="badge badge-info">👁️ ' + (b.vues || 0) + '</span></td>' +
+          '<td>' + getStatutBadge(b.statut) + '</td>' +
+          '<td style="color:#f59e0b;">' + (b.noteMoyenne ? etoiles + ' ' + b.noteMoyenne : '—') + '</td>' +
+          '</tr>';
+      }).join('');
+
+      // TABLEAU : Performance propriétaires
+      const tbody2 = document.getElementById('tbody-perf-proprios');
+      tbody2.innerHTML = proprios.map(p => {
+        const biensProprio = biens.filter(b => b.proprietaireId === p.id);
+        const biensLouesProprio = biensProprio.filter(b => b.statut === 'loue');
+        const revProprio = biensLouesProprio.reduce((s, b) => s + (b.prix || 0), 0);
+        const taux = biensProprio.length > 0 ? Math.round((biensLouesProprio.length / biensProprio.length) * 100) : 0;
+        return '<tr>' +
+          '<td><strong>' + (p.nom || '—') + '</strong></td>' +
+          '<td>' + biensProprio.length + '</td>' +
+          '<td><span class="badge badge-info">' + biensLouesProprio.length + '</span></td>' +
+          '<td style="color:var(--success);font-weight:700;">' + formatPrix(revProprio) + '/mois</td>' +
+          '<td>' +
+            '<div style="display:flex;align-items:center;gap:8px;">' +
+              '<div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden;">' +
+                '<div style="height:100%;width:' + taux + '%;background:' + (taux >= 70 ? '#10b981' : taux >= 40 ? '#f59e0b' : '#ef4444') + ';border-radius:4px;"></div>' +
+              '</div>' +
+              '<span style="font-size:12px;font-weight:700;">' + taux + '%</span>' +
+            '</div>' +
+          '</td>' +
+        '</tr>';
+      }).join('');
+
+    } catch (e) { console.error(e); showToast('Erreur analytique', 'error'); }
+  };
+
+  // ============================================
+  // IMPORT / EXPORT
+  // ============================================
+
+  // EXPORT CSV
+  window.exporterCSV = async (collection_name) => {
+    try {
+      showToast('Export en cours...', 'info');
+      const snap = await getDocs(collection(db, collection_name));
+      const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      if (data.length === 0) { showToast('Aucune donnée à exporter', 'warning'); return; }
+
+      // Colonnes selon la collection
+      const colonnes = {
+        biens:         ['id','titre','type','categorie','adresse','ville','quartier','prix','caution','avance','chambres','douches','surface','statut','vues','sourceAjout','proprietaireNom'],
+        reservations:  ['id','bienTitre','clientNom','clientTel','clientEmail','dateDebut','duree','montantLoyer','montantCaution','totalEntree','statut'],
+        proprietaires: ['id','nom','email','telephone','adresse','ville','profession','statut'],
+        finances:      ['id','type','categorie','montant','description','date']
+      };
+
+      const cols = colonnes[collection_name] || Object.keys(data[0]);
+
+      // Générer CSV
+      let csv = cols.join(';') + '\n';
+      data.forEach(row => {
+        csv += cols.map(col => {
+          let val = row[col];
+          if (val === null || val === undefined) val = '';
+          if (typeof val === 'object' && val.seconds) val = new Date(val.seconds * 1000).toLocaleDateString('fr-FR');
+          if (typeof val === 'object') val = JSON.stringify(val);
+          val = String(val).replace(/;/g, ',').replace(/\n/g, ' ');
+          return '"' + val + '"';
+        }).join(';') + '\n';
+      });
+
+      // Télécharger
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = collection_name + '_' + new Date().toISOString().split('T')[0] + '.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+
+      showToast(data.length + ' enregistrements exportés !', 'success');
+    } catch (e) { showToast('Erreur export : ' + e.message, 'error'); }
+  };
+
+  // EXPORT TOUT EN JSON
+  window.exporterTout = async () => {
+    try {
+      showToast('Export complet en cours...', 'info');
+      const collections = ['biens', 'reservations', 'proprietaires', 'finances', 'contrats'];
+      const result = {};
+
+      for (const col of collections) {
+        const snap = await getDocs(collection(db, col));
+        result[col] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      }
+
+      result.exportDate = new Date().toISOString();
+      result.agence = agenceConfig;
+
+      const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = 'backup_immo_elite_' + new Date().toISOString().split('T')[0] + '.json';
+      a.click();
+      URL.revokeObjectURL(url);
+
+      showToast('Sauvegarde complète téléchargée !', 'success');
+    } catch (e) { showToast('Erreur : ' + e.message, 'error'); }
+  };
+
+  // IMPORT CSV
+  window.importerCSV = async (input, type) => {
+    const file = input.files[0];
+    if (!file) return;
+
+    const result = document.getElementById('import-result');
+    result.innerHTML = '<div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border);font-size:13px;">⏳ Import en cours...</div>';
+
+    try {
+      const text = await file.text();
+      const lignes = text.split('\n').filter(l => l.trim());
+      const headers = lignes[0].split(';').map(h => h.replace(/"/g, '').trim());
+      const donnees = lignes.slice(1);
+
+      let importes = 0; let erreurs = 0;
+
+      for (const ligne of donnees) {
+        if (!ligne.trim()) continue;
+        try {
+          const vals = ligne.split(';').map(v => v.replace(/"/g, '').trim());
+          const obj = {};
+          headers.forEach((h, i) => { if (h !== 'id') obj[h] = vals[i] || ''; });
+          obj.createdAt = serverTimestamp();
+
+          // Convertir les types
+          if (type === 'biens') {
+            if (obj.prix) obj.prix = parseFloat(obj.prix) || 0;
+            if (obj.caution) obj.caution = parseFloat(obj.caution) || 0;
+            if (obj.chambres) obj.chambres = parseInt(obj.chambres) || 0;
+            obj.statut = obj.statut || 'en_attente';
+            obj.vues = 0; obj.photos = []; obj.video = '';
+          }
+          if (type === 'finances') {
+            if (obj.montant) obj.montant = parseFloat(obj.montant) || 0;
+          }
+
+          await addDoc(collection(db, type), obj);
+          importes++;
+        } catch (_) { erreurs++; }
+      }
+
+      result.innerHTML = '<div style="padding:12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:13px;color:#166534;">' +
+        '✅ Import terminé : <strong>' + importes + ' importés</strong>' +
+        (erreurs > 0 ? ' / ⚠️ ' + erreurs + ' erreurs' : '') +
+        '</div>';
+
+      showToast(importes + ' enregistrements importés !', 'success');
+
+    } catch (e) {
+      result.innerHTML = '<div style="padding:12px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;font-size:13px;color:#dc2626;">❌ Erreur : ' + e.message + '</div>';
+      showToast('Erreur import', 'error');
+    }
+  };
+
+  // MODELES CSV
+  window.telechargerModeleCSV = (type) => {
+    const modeles = {
+      biens: 'titre;type;categorie;adresse;ville;quartier;prix;caution;avance;chambres;douches;surface\n"Villa Example";"villa";"location";"Cocody Angré";"Abidjan";"Angré";"250000";"500000";"2";"4";"2";"120"',
+      finances: 'type;categorie;montant;description;date\n"revenu";"loyer";"250000";"Loyer Villa Cocody";"2025-01-01"\n"depense";"maintenance";"50000";"Réparation robinet";"2025-01-05"'
+    };
+
+    const csv = modeles[type] || '';
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'modele_' + type + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Modèle téléchargé !', 'success');
+  };
   // IMPRESSIONS
   const genPrint = (t, c) => { const w = window.open('', '_blank'); w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>' + t + '</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#1e293b;}table{width:100%;border-collapse:collapse;font-size:13px;}th{background:#f1f5f9;padding:10px;text-align:left;border:1px solid #e2e8f0;font-weight:700;}td{padding:10px;border:1px solid #e2e8f0;}</style></head><body><div style="border-bottom:3px solid #2563eb;padding-bottom:16px;margin-bottom:20px;"><div style="font-size:24px;font-weight:800;color:#2563eb;">' + (agenceConfig.nom || 'Immo Elite') + '</div><div style="font-size:12px;color:#64748b;">Imprimé le ' + new Date().toLocaleDateString('fr-FR') + '</div></div><h1 style="font-size:20px;margin-bottom:16px;">' + t + '</h1>' + c + '<script>window.print();<\/script></body></html>'); w.document.close(); };
   window.imprimerBiens = () => { genPrint('Biens', '<table><thead><tr><th>Titre</th><th>Type</th><th>Adresse</th><th>Prix</th><th>Statut</th></tr></thead><tbody>' + tousBiens.filter(b => b.statut === 'publie').map(b => '<tr><td>' + (b.titre || '—') + '</td><td>' + getTypeLabel(b.type) + '</td><td>' + (b.adresse || '—') + '</td><td>' + formatPrix(b.prix) + '</td><td>' + (b.statut || '—') + '</td></tr>').join('') + '</tbody></table>'); };

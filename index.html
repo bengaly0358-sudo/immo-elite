@@ -1082,6 +1082,178 @@
       animation: fadeIn 0.4s ease;
     }
     /* ========================================
+       GALERIE IMMERSIVE
+    ======================================== */
+    .galerie-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.95);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .galerie-img-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 80vh;
+    }
+
+    .galerie-img-wrap img {
+      max-width: 90vw;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: 8px;
+      transition: transform 0.3s ease;
+      cursor: zoom-in;
+    }
+
+    .galerie-img-wrap img.zoomed {
+      transform: scale(1.8);
+      cursor: zoom-out;
+    }
+
+    .galerie-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: white;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      font-size: 22px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .galerie-btn:hover { background: rgba(255,255,255,0.3); }
+    .galerie-btn.prev { left: 16px; }
+    .galerie-btn.next { right: 16px; }
+
+    .galerie-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: white;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .galerie-close:hover { background: var(--danger); }
+
+    .galerie-counter {
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 12px;
+      opacity: 0.8;
+    }
+
+    .galerie-thumbs {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      overflow-x: auto;
+      padding: 0 20px;
+      max-width: 90vw;
+    }
+
+    .galerie-thumbs img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 6px;
+      cursor: pointer;
+      opacity: 0.5;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+
+    .galerie-thumbs img.active {
+      opacity: 1;
+      border-color: white;
+    }
+
+    .galerie-actions {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .galerie-action-btn {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .galerie-action-btn:hover { background: rgba(255,255,255,0.3); }
+
+    /* AVIS */
+    .stars-input {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .star-btn {
+      font-size: 28px;
+      cursor: pointer;
+      transition: transform 0.1s;
+      background: none;
+      border: none;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .star-btn:hover { transform: scale(1.2); }
+
+    .avis-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .avis-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+
+    .avis-nom { font-weight: 700; font-size: 14px; }
+    .avis-date { font-size: 12px; color: var(--text-light); }
+    .avis-stars { font-size: 16px; margin-bottom: 6px; }
+    .avis-text { font-size: 13px; color: var(--text-light); line-height: 1.6; }
+    /* ========================================
        FAVORIS
     ======================================== */
     .fav-btn {
@@ -1351,7 +1523,11 @@
         <option value="1000000-99999999">+ 1 000 000 FCFA</option>
       </select>
 
-      <button class="btn-search" onclick="filtrerBiens()">🔍 Rechercher</button>
+            <button class="btn-search" onclick="filtrerBiens()">🔍 Rechercher</button>
+      <button class="btn-search" onclick="toggleRechercheAvancee()"
+        style="background:#1d4ed8;white-space:nowrap;">
+        ⚙️ Avancée
+      </button>
     </div>
   </div>
 </section>
@@ -1392,6 +1568,139 @@
     cursor:pointer;">
     Voir tous les biens
   </button>
+</div>
+<!-- ===== RECHERCHE AVANCEE ===== -->
+<div id="recherche-avancee" style="
+  background:var(--bg-card);
+  border-bottom:1px solid var(--border);
+  padding:0;
+  max-height:0;
+  overflow:hidden;
+  transition:max-height 0.3s ease, padding 0.3s ease;
+">
+  <div style="padding:20px 24px;max-width:1200px;margin:0 auto;">
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;color:var(--primary);">
+      🔍 Recherche avancée
+    </h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;">
+
+      <!-- Prix min/max -->
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--text-light);display:block;margin-bottom:6px;">
+          💰 Prix minimum
+        </label>
+        <input type="number" id="adv-prix-min" class="form-input"
+          placeholder="0" min="0" oninput="rechercheAvancee()"
+          style="padding:10px 12px;font-size:13px;"/>
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--text-light);display:block;margin-bottom:6px;">
+          💰 Prix maximum
+        </label>
+        <input type="number" id="adv-prix-max" class="form-input"
+          placeholder="999999999" min="0" oninput="rechercheAvancee()"
+          style="padding:10px 12px;font-size:13px;"/>
+      </div>
+
+      <!-- Chambres -->
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--text-light);display:block;margin-bottom:6px;">
+          🛏️ Chambres min
+        </label>
+        <select id="adv-chambres" class="form-select"
+          style="padding:10px 12px;font-size:13px;" onchange="rechercheAvancee()">
+          <option value="0">Toutes</option>
+          <option value="1">1+</option>
+          <option value="2">2+</option>
+          <option value="3">3+</option>
+          <option value="4">4+</option>
+          <option value="5">5+</option>
+        </select>
+      </div>
+
+      <!-- Surface -->
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--text-light);display:block;margin-bottom:6px;">
+          📐 Surface min (m²)
+        </label>
+        <input type="number" id="adv-surface" class="form-input"
+          placeholder="0" min="0" oninput="rechercheAvancee()"
+          style="padding:10px 12px;font-size:13px;"/>
+      </div>
+
+      <!-- Ville -->
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--text-light);display:block;margin-bottom:6px;">
+          🏙️ Ville
+        </label>
+        <input type="text" id="adv-ville" class="form-input"
+          placeholder="Ex: Abidjan" oninput="rechercheAvancee()"
+          style="padding:10px 12px;font-size:13px;"/>
+      </div>
+
+      <!-- Quartier -->
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--text-light);display:block;margin-bottom:6px;">
+          📌 Quartier
+        </label>
+        <input type="text" id="adv-quartier" class="form-input"
+          placeholder="Ex: Cocody" oninput="rechercheAvancee()"
+          style="padding:10px 12px;font-size:13px;"/>
+      </div>
+
+      <!-- Tri -->
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--text-light);display:block;margin-bottom:6px;">
+          🔀 Trier par
+        </label>
+        <select id="adv-tri" class="form-select"
+          style="padding:10px 12px;font-size:13px;" onchange="rechercheAvancee()">
+          <option value="date">📅 Plus récents</option>
+          <option value="prix-asc">💰 Prix croissant</option>
+          <option value="prix-desc">💰 Prix décroissant</option>
+          <option value="surface-desc">📐 Surface (grand → petit)</option>
+          <option value="vues">👁️ Plus consultés</option>
+        </select>
+      </div>
+
+      <!-- Options -->
+      <div>
+        <label style="font-size:12px;font-weight:600;color:var(--text-light);display:block;margin-bottom:6px;">
+          ✨ Options
+        </label>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" id="adv-meuble" onchange="rechercheAvancee()" style="accent-color:var(--primary);"/>
+            🛋️ Meublé uniquement
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" id="adv-garage" onchange="rechercheAvancee()" style="accent-color:var(--primary);"/>
+            🚗 Avec garage
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+            <input type="checkbox" id="adv-vedette" onchange="rechercheAvancee()" style="accent-color:var(--primary);"/>
+            ⭐ Biens en vedette
+          </label>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bouton réinitialiser -->
+    <div style="margin-top:16px;display:flex;gap:12px;">
+      <button onclick="reinitialiserRecherche()" style="
+        background:var(--border);color:var(--text);border:none;
+        padding:10px 20px;border-radius:8px;font-size:13px;
+        font-weight:600;cursor:pointer;transition:all .2s;
+      ">
+        🔄 Réinitialiser
+      </button>
+      <span id="adv-count" style="
+        display:flex;align-items:center;
+        font-size:13px;color:var(--text-light);
+      "></span>
+    </div>
+  </div>
 </div>
 
 <!-- ===== CATEGORIES ===== -->
@@ -1578,6 +1887,21 @@
   <a id="float-wa" href="#" target="_blank" class="float-btn btn-wa" title="WhatsApp">💬</a>
   <a id="float-tel" href="#" class="float-btn btn-tel" title="Appeler">📞</a>
   <a id="float-sms" href="#" class="float-btn btn-sms" title="SMS">✉️</a>
+</div>
+<!-- ===== GALERIE IMMERSIVE ===== -->
+<div id="galerie-overlay" class="galerie-overlay" style="display:none;">
+  <div class="galerie-actions">
+    <button class="galerie-action-btn" onclick="telechargerPhoto()">📥 Télécharger</button>
+    <button class="galerie-action-btn" id="galerie-diaporama-btn" onclick="toggleDiaporama()">▶️ Diaporama</button>
+  </div>
+  <button class="galerie-close" onclick="fermerGalerie()">✕</button>
+  <div class="galerie-img-wrap">
+    <button class="galerie-btn prev" onclick="photoPrec()">‹</button>
+    <img id="galerie-img" src="" alt="Photo" onclick="toggleZoom(this)"/>
+    <button class="galerie-btn next" onclick="photoSuiv()">›</button>
+  </div>
+  <div class="galerie-counter" id="galerie-counter">1 / 1</div>
+  <div class="galerie-thumbs" id="galerie-thumbs"></div>
 </div>
 
 <!-- ===== MODAL DETAIL BIEN ===== -->
@@ -1965,15 +2289,29 @@
       }
 
       // --- GALERIE PHOTOS ---
+           // --- GALERIE PHOTOS IMMERSIVE ---
       let galerieHTML = '';
       if (b.photos && b.photos.length > 0) {
-        galerieHTML = '<div class="gallery-scroll">';
-        for (let i = 0; i < b.photos.length; i++) {
-          galerieHTML += '<img src="' + b.photos[i] + '" alt="Photo ' + (i+1) + '" onclick="window.open(\'' + b.photos[i] + '\',\'_blank\')" onerror="this.style.display=\'none\'" />';
-        }
-        galerieHTML += '</div>';
+        const photosJSON = JSON.stringify(b.photos).replace(/'/g, "\\'");
+        galerieHTML =
+          '<div style="margin-bottom:16px;">' +
+          '<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;">' +
+          b.photos.map((p, i) =>
+            '<div style="position:relative;flex-shrink:0;">' +
+            '<img src="' + p + '" alt="Photo ' + (i+1) + '" ' +
+            'onclick="ouvrirGalerie(' + photosJSON + ',' + i + ')" ' +
+            'style="height:100px;width:140px;object-fit:cover;border-radius:8px;cursor:pointer;' +
+            'transition:transform .2s;border:2px solid var(--border);" ' +
+            'onmouseover="this.style.transform=\'scale(1.05)\'" ' +
+            'onmouseout="this.style.transform=\'scale(1)\'" ' +
+            'onerror="this.style.display=\'none\'"/>' +
+            (i === 0 ? '<div style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,.6);color:white;font-size:10px;padding:2px 6px;border-radius:4px;">🔍 Zoom</div>' : '') +
+            '</div>'
+          ).join('') +
+          '</div>' +
+          '<div style="font-size:11px;color:var(--text-light);text-align:center;margin-top:4px;">Cliquez sur une photo pour l\'agrandir</div>' +
+          '</div>';
       }
-
       // --- INFO GRID ---
       let infoHTML = '<div class="info-grid">';
 
@@ -2057,6 +2395,8 @@
           '</div>';
       }
 
+      // --- AVIS ---
+      const avisHTML = await chargerAvis(id);
       // --- ACTIONS ---
       let actionsHTML = '<div class="modal-actions">';
 
@@ -2076,11 +2416,17 @@
       }
 
       actionsHTML += '</div>';
+      // --- BOUTON AVIS ---
+      const btnAvisHTML =
+        '<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">' +
+          '<button onclick="ouvrirFormAvis(\'' + b.id + '\',\'' + (b.titre || 'ce bien').replace(/'/g, "\\'") + '\')" ' +
+          'style="background:var(--warning);color:white;border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">⭐ Laisser un avis</button>' +
+        '</div>';
 
       // --- ASSEMBLER ---
-      body.innerHTML = videoHTML + galerieHTML + infoHTML + caractHTML + descHTML + contratHTML + actionsHTML;
+      body.innerHTML = videoHTML + galerieHTML + infoHTML + caractHTML + descHTML + contratHTML + avisHTML + actionsHTML + btnAvisHTML;
 
-    } catch (e) {
+         } catch (e) {
       console.error(e);
       body.innerHTML =
         '<div class="empty-state">' +
@@ -2145,6 +2491,87 @@
 
     afficherBiens(resultats);
   };
+  // ============================================
+  // RECHERCHE AVANCEE
+  // ============================================
+  window.toggleRechercheAvancee = () => {
+    const panel = document.getElementById('recherche-avancee');
+    const isOpen = panel.style.maxHeight !== '0px' && panel.style.maxHeight !== '';
+    if (isOpen) {
+      panel.style.maxHeight = '0';
+      panel.style.padding = '0';
+    } else {
+      panel.style.maxHeight = '600px';
+      panel.style.padding = '';
+    }
+  };
+
+  window.rechercheAvancee = () => {
+    const prixMin  = parseFloat(document.getElementById('adv-prix-min')?.value) || 0;
+    const prixMax  = parseFloat(document.getElementById('adv-prix-max')?.value) || 999999999;
+    const chambres = parseInt(document.getElementById('adv-chambres')?.value) || 0;
+    const surface  = parseFloat(document.getElementById('adv-surface')?.value) || 0;
+    const ville    = document.getElementById('adv-ville')?.value?.toLowerCase().trim() || '';
+    const quartier = document.getElementById('adv-quartier')?.value?.toLowerCase().trim() || '';
+    const meuble   = document.getElementById('adv-meuble')?.checked || false;
+    const garage   = document.getElementById('adv-garage')?.checked || false;
+    const vedette  = document.getElementById('adv-vedette')?.checked || false;
+    const tri      = document.getElementById('adv-tri')?.value || 'date';
+
+    // Aussi prendre en compte les filtres simples
+    const type      = document.getElementById('filtre-type')?.value || '';
+    const categorie = document.getElementById('filtre-categorie')?.value || '';
+    const recherche = document.getElementById('filtre-recherche')?.value?.toLowerCase().trim() || '';
+
+    let resultats = tousBiens.filter(b => {
+      const prix = b.prix || 0;
+      if (prix < prixMin || prix > prixMax) return false;
+      if (chambres > 0 && (b.chambres || 0) < chambres) return false;
+      if (surface > 0 && (b.surface || 0) < surface) return false;
+      if (ville && !(b.ville || '').toLowerCase().includes(ville)) return false;
+      if (quartier && !(b.quartier || '').toLowerCase().includes(quartier)) return false;
+      if (meuble && !b.meuble) return false;
+      if (garage && !b.garage) return false;
+      if (vedette && !b.enVedette) return false;
+      if (type && b.type !== type) return false;
+      if (categorie && b.categorie !== categorie) return false;
+      if (recherche) {
+        const txt = [b.titre, b.adresse, b.description, b.ville, b.quartier].join(' ').toLowerCase();
+        if (!txt.includes(recherche)) return false;
+      }
+      return true;
+    });
+
+    // Tri
+    resultats.sort((a, b2) => {
+      if (tri === 'prix-asc')     return (a.prix || 0) - (b2.prix || 0);
+      if (tri === 'prix-desc')    return (b2.prix || 0) - (a.prix || 0);
+      if (tri === 'surface-desc') return (b2.surface || 0) - (a.surface || 0);
+      if (tri === 'vues')         return (b2.vues || 0) - (a.vues || 0);
+      // Par défaut : date décroissant
+      return (b2.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0);
+    });
+
+    // Afficher résultats
+    const count = document.getElementById('adv-count');
+    if (count) count.textContent = resultats.length + ' bien(s) trouvé(s)';
+
+    afficherBiens(resultats);
+    document.getElementById('biens').scrollIntoView({ behavior: 'smooth' });
+  };
+
+  window.reinitialiserRecherche = () => {
+    const ids = ['adv-prix-min', 'adv-prix-max', 'adv-ville', 'adv-quartier', 'adv-surface'];
+    ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    const checks = ['adv-meuble', 'adv-garage', 'adv-vedette'];
+    checks.forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
+    const sel = ['adv-chambres', 'adv-tri'];
+    sel.forEach(id => { const el = document.getElementById(id); if (el) el.selectedIndex = 0; });
+    const count = document.getElementById('adv-count');
+    if (count) count.textContent = '';
+    afficherBiens(tousBiens);
+    showToast('Recherche réinitialisée', 'info');
+  };
 
   // ============================================
   // SELECTION CATEGORIE
@@ -2165,7 +2592,243 @@
   document.getElementById('filtre-type').addEventListener('change', filtrerBiens);
   document.getElementById('filtre-categorie').addEventListener('change', filtrerBiens);
   document.getElementById('filtre-prix').addEventListener('change', filtrerBiens);
+  // ============================================
+  // GALERIE IMMERSIVE
+  // ============================================
+  let galeriePhotos = [];
+  let galerieIndex = 0;
+  let diaporamaInterval = null;
 
+  window.ouvrirGalerie = (photos, index) => {
+    galeriePhotos = photos;
+    galerieIndex = index || 0;
+    document.getElementById('galerie-overlay').style.display = 'flex';
+    majGalerie();
+    document.body.style.overflow = 'hidden';
+
+    // Navigation clavier
+    document.addEventListener('keydown', navClavier);
+  };
+
+  window.fermerGalerie = () => {
+    document.getElementById('galerie-overlay').style.display = 'none';
+    document.body.style.overflow = '';
+    arreterDiaporama();
+    document.removeEventListener('keydown', navClavier);
+  };
+
+  const navClavier = (e) => {
+    if (e.key === 'ArrowLeft')  photoPrec();
+    if (e.key === 'ArrowRight') photoSuiv();
+    if (e.key === 'Escape')     fermerGalerie();
+  };
+
+  const majGalerie = () => {
+    const img = document.getElementById('galerie-img');
+    const counter = document.getElementById('galerie-counter');
+    const thumbs = document.getElementById('galerie-thumbs');
+
+    img.src = galeriePhotos[galerieIndex];
+    img.classList.remove('zoomed');
+    counter.textContent = (galerieIndex + 1) + ' / ' + galeriePhotos.length;
+
+    thumbs.innerHTML = galeriePhotos.map((p, i) =>
+      '<img src="' + p + '" alt="thumb" class="' + (i === galerieIndex ? 'active' : '') + '" onclick="allerPhoto(' + i + ')"/>'
+    ).join('');
+  };
+
+  window.photoPrec = () => {
+    galerieIndex = galerieIndex > 0 ? galerieIndex - 1 : galeriePhotos.length - 1;
+    majGalerie();
+  };
+
+  window.photoSuiv = () => {
+    galerieIndex = galerieIndex < galeriePhotos.length - 1 ? galerieIndex + 1 : 0;
+    majGalerie();
+  };
+
+  window.allerPhoto = (i) => {
+    galerieIndex = i;
+    majGalerie();
+  };
+
+  window.toggleZoom = (img) => {
+    img.classList.toggle('zoomed');
+    img.style.cursor = img.classList.contains('zoomed') ? 'zoom-out' : 'zoom-in';
+  };
+
+  window.telechargerPhoto = () => {
+    const a = document.createElement('a');
+    a.href = galeriePhotos[galerieIndex];
+    a.download = 'photo-' + (galerieIndex + 1) + '.jpg';
+    a.target = '_blank';
+    a.click();
+  };
+
+  window.toggleDiaporama = () => {
+    const btn = document.getElementById('galerie-diaporama-btn');
+    if (diaporamaInterval) {
+      arreterDiaporama();
+      btn.textContent = '▶️ Diaporama';
+    } else {
+      diaporamaInterval = setInterval(() => { photoSuiv(); }, 3000);
+      btn.textContent = '⏸️ Pause';
+    }
+  };
+
+  const arreterDiaporama = () => {
+    if (diaporamaInterval) { clearInterval(diaporamaInterval); diaporamaInterval = null; }
+    const btn = document.getElementById('galerie-diaporama-btn');
+    if (btn) btn.textContent = '▶️ Diaporama';
+  };
+
+  // Fermer galerie en cliquant dehors
+  document.getElementById('galerie-overlay').addEventListener('click', function(e) {
+    if (e.target === this) fermerGalerie();
+  });
+  // ============================================
+  // AVIS CLIENTS
+  // ============================================
+  let noteSelectionnee = 0;
+
+  window.ouvrirFormAvis = (bienId, bienTitre) => {
+    const overlay = document.getElementById('modal-overlay');
+    const body = document.getElementById('modal-body');
+    const titre = document.getElementById('modal-titre');
+
+    titre.textContent = '⭐ Laisser un avis';
+    overlay.style.display = 'flex';
+
+    body.innerHTML =
+      '<div style="margin-bottom:20px;">' +
+        '<p style="font-size:14px;color:var(--text-light);margin-bottom:16px;">Partagez votre expérience pour <strong>' + bienTitre + '</strong></p>' +
+
+        // Étoiles
+        '<div style="margin-bottom:16px;">' +
+          '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:8px;">Votre note <span style="color:var(--danger);">*</span></label>' +
+          '<div class="stars-input" id="stars-input">' +
+            [1,2,3,4,5].map(i =>
+              '<button class="star-btn" onclick="selectionnerNote(' + i + ')" id="star-' + i + '">☆</button>'
+            ).join('') +
+          '</div>' +
+          '<div id="note-label" style="font-size:12px;color:var(--text-light);">Cliquez pour noter</div>' +
+        '</div>' +
+
+        // Nom
+        '<div style="margin-bottom:14px;">' +
+          '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Votre nom <span style="color:var(--danger);">*</span></label>' +
+          '<input type="text" id="avis-nom" style="width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:9px;font-size:13px;color:var(--text);background:var(--bg);outline:none;font-family:inherit;" placeholder="Ex: Jean Dupont"/>' +
+        '</div>' +
+
+        // Commentaire
+        '<div style="margin-bottom:20px;">' +
+          '<label style="font-size:13px;font-weight:600;display:block;margin-bottom:6px;">Votre commentaire</label>' +
+          '<textarea id="avis-texte" style="width:100%;padding:11px 14px;border:2px solid var(--border);border-radius:9px;font-size:13px;color:var(--text);background:var(--bg);outline:none;font-family:inherit;resize:vertical;min-height:90px;" placeholder="Décrivez votre expérience..."></textarea>' +
+        '</div>' +
+
+        '<button onclick="soumettreAvis(\'' + bienId + '\')" style="width:100%;background:var(--primary);color:white;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;">⭐ Publier mon avis</button>' +
+      '</div>';
+
+    noteSelectionnee = 0;
+  };
+
+  window.selectionnerNote = (note) => {
+    noteSelectionnee = note;
+    const labels = ['', '😞 Très mauvais', '😕 Mauvais', '😐 Moyen', '😊 Bien', '🤩 Excellent !'];
+    document.getElementById('note-label').textContent = labels[note];
+    document.getElementById('note-label').style.color = note >= 4 ? 'var(--success)' : note >= 3 ? 'var(--warning)' : 'var(--danger)';
+    [1,2,3,4,5].forEach(i => {
+      const star = document.getElementById('star-' + i);
+      if (star) star.textContent = i <= note ? '⭐' : '☆';
+    });
+  };
+
+  window.soumettreAvis = async (bienId) => {
+    const nom = document.getElementById('avis-nom')?.value.trim();
+    const texte = document.getElementById('avis-texte')?.value.trim();
+
+    if (!nom) { showToast('Entrez votre nom', 'warning'); return; }
+    if (noteSelectionnee === 0) { showToast('Sélectionnez une note', 'warning'); return; }
+
+    try {
+      await addDoc(collection(db, 'avis'), {
+        bienId,
+        nom,
+        note: noteSelectionnee,
+        texte,
+        date: serverTimestamp()
+      });
+
+      fermerModal();
+      showToast('Merci pour votre avis ! ⭐', 'success');
+
+    } catch (e) {
+      showToast('Erreur : ' + e.message, 'error');
+    }
+  };
+
+  const chargerAvis = async (bienId) => {
+    try {
+      const q = query(collection(db, 'avis'), where('bienId', '==', bienId));
+      const snap = await getDocs(q);
+      const avis = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+      if (avis.length === 0) return '';
+
+      const moyenne = avis.reduce((s, a) => s + (a.note || 0), 0) / avis.length;
+      const etoiles = '⭐'.repeat(Math.round(moyenne)) + '☆'.repeat(5 - Math.round(moyenne));
+
+      let html =
+        '<div style="margin-bottom:20px;">' +
+          '<h4 style="font-weight:700;margin-bottom:12px;">⭐ Avis clients</h4>' +
+
+          // Moyenne
+          '<div style="background:var(--bg);padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:16px;display:flex;align-items:center;gap:16px;">' +
+            '<div style="text-align:center;">' +
+              '<div style="font-size:40px;font-weight:800;color:var(--warning);">' + moyenne.toFixed(1) + '</div>' +
+              '<div style="font-size:18px;">' + etoiles + '</div>' +
+              '<div style="font-size:12px;color:var(--text-light);">' + avis.length + ' avis</div>' +
+            '</div>' +
+            '<div style="flex:1;">' +
+              [5,4,3,2,1].map(n => {
+                const count = avis.filter(a => a.note === n).length;
+                const pct = avis.length > 0 ? Math.round((count / avis.length) * 100) : 0;
+                return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">' +
+                  '<span style="font-size:12px;width:12px;">' + n + '</span>' +
+                  '<span style="font-size:12px;">⭐</span>' +
+                  '<div style="flex:1;background:var(--border);border-radius:4px;height:8px;overflow:hidden;">' +
+                    '<div style="width:' + pct + '%;height:100%;background:var(--warning);border-radius:4px;"></div>' +
+                  '</div>' +
+                  '<span style="font-size:11px;color:var(--text-light);width:30px;">' + pct + '%</span>' +
+                  '</div>';
+              }).join('') +
+            '</div>' +
+          '</div>' +
+
+          // Liste des avis
+          avis.slice(0, 5).map(a => {
+            const etoilesA = '⭐'.repeat(a.note || 0) + '☆'.repeat(5 - (a.note || 0));
+            const dateA = a.date?.seconds ? new Date(a.date.seconds * 1000).toLocaleDateString('fr-FR') : '—';
+            return '<div class="avis-card">' +
+              '<div class="avis-header">' +
+                '<div>' +
+                  '<div class="avis-nom">' + (a.nom || 'Anonyme') + '</div>' +
+                  '<div class="avis-stars">' + etoilesA + '</div>' +
+                '</div>' +
+                '<div class="avis-date">' + dateA + '</div>' +
+              '</div>' +
+              (a.texte ? '<div class="avis-text">' + a.texte + '</div>' : '') +
+              '</div>';
+          }).join('') +
+
+        '</div>';
+
+      return html;
+
+    } catch (e) {
+      return '';
+    }
+  };
   // ============================================
   // FAVORIS CLIENT
   // ============================================
